@@ -8,6 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.core.widget.ImageViewCompat;
+import androidx.core.content.ContextCompat;
 
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.setting.ThemePalette;
@@ -35,13 +39,18 @@ public final class LeanbackTheme {
     }
 
     private static void theme(View view, ThemePalette palette) {
+        if (view instanceof ImageView) {
+            ImageViewCompat.setImageTintList((ImageView) view, android.content.res.ColorStateList.valueOf(palette.onAccent()));
+        } else if (view instanceof TextView) {
+            ((TextView) view).setTextColor(palette.onAccent());
+        }
         if (view.isFocusable() && THEMED.add(view)) {
             Drawable normal = view.getBackground();
             StateListDrawable states = new StateListDrawable();
-            states.addState(new int[]{android.R.attr.state_focused}, shape(palette.container(), palette.focus(), view instanceof ImageView));
-            states.addState(new int[]{android.R.attr.state_activated}, shape(palette.container(), palette.selected(), false));
-            states.addState(new int[]{android.R.attr.state_selected}, shape(palette.container(), palette.selected(), false));
-            states.addState(new int[0], normal == null ? shape(0x00000000, 0x00000000, true) : normal);
+            states.addState(new int[]{android.R.attr.state_focused}, shape(palette.container(), palette.focus(), false));
+            states.addState(new int[]{android.R.attr.state_activated}, shape(palette.selected(), 0, false));
+            states.addState(new int[]{android.R.attr.state_selected}, shape(palette.selected(), 0, false));
+            states.addState(new int[0], normal == null ? shape(palette.container(), 0, false) : normal);
             view.setBackground(states);
         }
         if (view instanceof ViewGroup group) for (int i = 0; i < group.getChildCount(); i++) theme(group.getChildAt(i), palette);

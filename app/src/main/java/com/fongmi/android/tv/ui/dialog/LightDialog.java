@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.ContextThemeWrapper;
 import android.widget.LinearLayout;
 
 import androidx.core.content.ContextCompat;
@@ -43,9 +44,10 @@ public final class LightDialog {
     }
 
     private static Dialog createInternal(Context context, CharSequence title, View content, String positive, View.OnClickListener onPositive, String negative, View.OnClickListener onNegative, String neutral, View.OnClickListener onNeutral, float landFactor, float portFactor, int maxDp) {
-        Dialog dialog = new Dialog(context);
+        Context themed = new ContextThemeWrapper(context, R.style.Theme_WebHTV_LightDialog);
+        Dialog dialog = new Dialog(themed, R.style.Theme_WebHTV_LightDialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(root(context, title, content, positive, listener(dialog, onPositive), negative, listener(dialog, onNegative), neutral, listener(dialog, onNeutral)));
+        dialog.setContentView(root(themed, title, content, positive, listener(dialog, onPositive), negative, listener(dialog, onNegative), neutral, listener(dialog, onNeutral)));
         dialog.setCanceledOnTouchOutside(true);
         dialog.setOnShowListener(d -> applyWindow(dialog, context, landFactor, portFactor, maxDp));
         return dialog;

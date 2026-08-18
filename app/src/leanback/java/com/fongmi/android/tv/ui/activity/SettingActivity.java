@@ -101,7 +101,14 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
         mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
-        mBinding.themeText.setText(THEME_NAMES[getThemeIndex()]);
+        mBinding.themeText.setText(getThemeLabel());
+    }
+
+    private String getThemeLabel() {
+        int color = Setting.getThemeColor();
+        for (int i = 0; i < THEME_COLORS.length; i++) if (THEME_COLORS[i] == color) return getString(THEME_NAMES[i]);
+        if (color == -1 || color == 0) return getString(R.string.setting_theme_color);
+        return String.format(java.util.Locale.ROOT, "#%06X", color & 0xFFFFFF);
     }
 
     private void setCacheText() {
@@ -333,14 +340,14 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     }
 
     private int getThemeIndex() {
-        int color = Setting.getDynamicColor();
+        int color = Setting.getThemeColor();
         for (int i = 0; i < THEME_COLORS.length; i++) if (THEME_COLORS[i] == color) return i;
-        return 0;
+        return -1;
     }
 
     private void setTheme(View view) {
-        int index = (getThemeIndex() + 1) % THEME_COLORS.length;
-        Setting.putThemeColor(THEME_COLORS[index]);
+        int index = getThemeIndex();
+        Setting.putThemeColor(THEME_COLORS[(index + 1 + THEME_COLORS.length) % THEME_COLORS.length]);
         RefreshEvent.theme();
     }
 
