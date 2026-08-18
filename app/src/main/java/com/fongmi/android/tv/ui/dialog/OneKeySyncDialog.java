@@ -280,10 +280,10 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
     }
 
     private void updateDirectionCard(com.google.android.material.card.MaterialCardView card, TextView role, boolean sender) {
-        card.setCardBackgroundColor(Color.parseColor(sender ? "#E8F0FE" : "#F8FAFD"));
+        card.setCardBackgroundColor(Color.parseColor(sender ? "#C8E6C9" : "#F8FAFD"));
         card.setStrokeColor(Color.TRANSPARENT);
         card.setStrokeWidth(0);
-        role.setTextColor(Color.parseColor(sender ? "#174EA6" : "#5F6368"));
+        role.setTextColor(Color.parseColor(sender ? "#2E7D32" : "#5F6368"));
     }
 
     @Override

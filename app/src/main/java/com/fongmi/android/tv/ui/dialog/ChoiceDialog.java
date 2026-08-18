@@ -281,9 +281,9 @@ public final class ChoiceDialog extends DialogFragment {
         }
         boolean on = itemSelected(position);
         boolean focused = button.isFocused();
-        int text = on || focused ? Color.parseColor("#174EA6") : Color.parseColor("#202124");
-        int bg = on || focused ? Color.parseColor("#E8F0FE") : Color.WHITE;
-        int stroke = on || focused ? Color.parseColor("#1A73E8") : Color.parseColor("#DADCE0");
+        int text = on || focused ? Color.parseColor("#2E7D32") : Color.parseColor("#202124");
+        int bg = on || focused ? Color.parseColor("#C8E6C9") : Color.WHITE;
+        int stroke = on || focused ? Color.parseColor("#2E7D32") : Color.parseColor("#DADCE0");
         button.setTextColor(ColorStateList.valueOf(text));
         button.setBackgroundTintList(ColorStateList.valueOf(bg));
         button.setStrokeColor(ColorStateList.valueOf(stroke));

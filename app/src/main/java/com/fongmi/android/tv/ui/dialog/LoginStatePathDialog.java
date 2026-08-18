@@ -578,7 +578,7 @@ public class LoginStatePathDialog extends BaseAlertDialog {
         String path = row.item.getPath();
         if (isMissing(path)) return Color.parseColor("#B3261E");
         if (isPending(path) || (row.item.isDir() && hasPendingChild(path))) return Color.parseColor("#B06000");
-        return Color.parseColor("#174EA6");
+        return Color.parseColor("#2E7D32");
     }
 
     private int nameColor(Row row) {

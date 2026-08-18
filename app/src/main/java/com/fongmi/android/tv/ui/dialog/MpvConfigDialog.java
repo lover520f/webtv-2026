@@ -105,8 +105,8 @@ public class MpvConfigDialog extends BaseAlertDialog implements MpvConfigProfile
     private void setupTabs() {
         binding.tabs.setTabMode(TabLayout.MODE_FIXED);
         binding.tabs.setTabGravity(TabLayout.GRAVITY_FILL);
-        binding.tabs.setSelectedTabIndicatorColor(Color.parseColor("#1A73E8"));
-        binding.tabs.setTabTextColors(Color.parseColor("#5F6368"), Color.parseColor("#1A73E8"));
+        binding.tabs.setSelectedTabIndicatorColor(Color.parseColor("#2E7D32"));
+        binding.tabs.setTabTextColors(Color.parseColor("#5F6368"), Color.parseColor("#2E7D32"));
         binding.tabs.setTabRippleColor(android.content.res.ColorStateList.valueOf(Color.TRANSPARENT));
         binding.tabs.setUnboundedRipple(false);
         for (String label : targets()) binding.tabs.addTab(binding.tabs.newTab().setText(label));

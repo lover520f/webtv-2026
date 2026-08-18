@@ -7,6 +7,7 @@
     </style>
 
     <style name="Theme.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/startup_background</item>
         <item name="postSplashScreenTheme">@style/Theme.App</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>

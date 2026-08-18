@@ -114,7 +114,7 @@
                                 android:id="@+id/localIcon"
                                 android:layout_width="30dp"
                                 android:layout_height="30dp"
-                                android:tint="#2F6FED"
+                                android:tint="@color/theme_green_dark"
                                 tools:src="@drawable/ic_sync_phone" />
 
                             <com.google.android.material.textview.MaterialTextView
@@ -133,7 +133,7 @@
                                 android:gravity="center"
                                 android:singleLine="true"
                                 android:text="@string/sync_sender"
-                                android:textColor="#0B57D0"
+                                android:textColor="@color/theme_green_dark"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 
@@ -176,7 +176,7 @@
                         android:gravity="center"
                         android:includeFontPadding="false"
                         android:text="@string/sync_push"
-                        android:textColor="#174EA6"
+                        android:textColor="#2E7D32"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         app:drawableTopCompat="@drawable/ic_sync_arrow_right_blue" />
@@ -204,7 +204,7 @@
                                 android:id="@+id/remoteIcon"
                                 android:layout_width="30dp"
                                 android:layout_height="30dp"
-                                android:tint="#2F6FED"
+                                android:tint="@color/theme_green_dark"
                                 tools:src="@drawable/ic_sync_tv" />
 
                             <com.google.android.material.textview.MaterialTextView
@@ -223,7 +223,7 @@
                                 android:gravity="center"
                                 android:singleLine="true"
                                 android:text="@string/sync_receiver"
-                                android:textColor="#0B57D0"
+                                android:textColor="@color/theme_green_dark"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 

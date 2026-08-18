@@ -565,8 +565,16 @@ public class Setting {
         return Prefers.getInt("theme_color", -1);
     }
 
+    public static void applyMobileThemeColorPolicy() {
+        boolean explicit = Prefers.getPrefers().contains("theme_color");
+        int version = Prefers.getInt("theme_color_policy", 0);
+        if (ThemeColorPolicy.shouldMigrate(explicit, version)) Prefers.put("theme_color", ThemeColorPolicy.DEFAULT_GREEN);
+        if (version < ThemeColorPolicy.VERSION) Prefers.put("theme_color_policy", ThemeColorPolicy.VERSION);
+    }
+
     public static void putThemeColor(int color) {
         Prefers.put("theme_color", color);
+        Prefers.put("theme_color_policy", ThemeColorPolicy.VERSION);
     }
 
     public static int getWallColor() {

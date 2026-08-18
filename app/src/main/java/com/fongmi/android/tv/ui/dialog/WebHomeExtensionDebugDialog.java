@@ -664,7 +664,7 @@ public class WebHomeExtensionDebugDialog extends BaseAlertDialog implements Home
     }
 
     private MaterialTextView networkUrlCell(String value, boolean header) {
-        MaterialTextView view = networkText(value, 12, header ? Color.BLACK : Color.parseColor("#174EA6"), header);
+        MaterialTextView view = networkText(value, 12, header ? Color.BLACK : Color.parseColor("#2E7D32"), header);
         LinearLayoutCompat.LayoutParams params = new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         view.setMinWidth(dp(620));
         view.setLayoutParams(params);

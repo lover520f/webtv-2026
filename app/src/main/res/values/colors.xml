@@ -3,6 +3,11 @@
     <color name="transparent">#00000000</color>
     <color name="black">#000000</color>
     <color name="startup_background">#032B51</color>
+    <color name="theme_green">#43A047</color>
+    <color name="theme_green_dark">#2E7D32</color>
+    <color name="theme_green_light">#C8E6C9</color>
+    <color name="theme_green_surface">#F1F8E9</color>
+    <color name="theme_green_ripple">#1A43A047</color>
     <color name="black_05">#0D000000</color>
     <color name="black_10">#1A000000</color>
     <color name="black_15">#26000000</color>

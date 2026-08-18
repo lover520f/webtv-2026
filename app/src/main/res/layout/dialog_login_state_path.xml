@@ -40,7 +40,7 @@
             android:paddingEnd="10dp"
             android:text="@string/sync_paths_refresh"
             android:textColor="@color/dialog_text_button"
-            app:rippleColor="#1A1A73E8" />
+            app:rippleColor="@color/theme_green_ripple" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -173,7 +173,7 @@
             android:minWidth="0dp"
             android:text="@string/login_state_reveal_pending"
             android:textColor="@color/dialog_text_button"
-            app:rippleColor="#1A1A73E8" />
+            app:rippleColor="@color/theme_green_ripple" />
 
         <Space
             android:layout_width="0dp"

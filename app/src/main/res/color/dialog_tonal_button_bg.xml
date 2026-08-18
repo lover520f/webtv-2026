@@ -2,6 +2,6 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:color="#C2D7F7" android:state_focused="true" />
     <item android:color="#C2D7F7" android:state_pressed="true" />
-    <item android:alpha="0.38" android:color="#E8F0FE" android:state_enabled="false" />
-    <item android:color="#E8F0FE" />
+    <item android:alpha="0.38" android:color="@color/theme_green_light" android:state_enabled="false" />
+    <item android:color="@color/theme_green_light" />
 </selector>

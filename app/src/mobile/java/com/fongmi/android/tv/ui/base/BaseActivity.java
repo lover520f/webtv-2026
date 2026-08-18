@@ -120,6 +120,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void enableDynamicColor() {
+        Setting.applyMobileThemeColorPolicy();
         int color = Setting.getDynamicColor();
         if (color != 0) DynamicColors.applyToActivityIfAvailable(this, new DynamicColorsOptions.Builder().setContentBasedSource(color).build());
     }
