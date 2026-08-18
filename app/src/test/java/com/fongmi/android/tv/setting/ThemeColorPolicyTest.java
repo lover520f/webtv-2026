@@ -9,10 +9,11 @@ import static org.junit.Assert.assertTrue;
 public class ThemeColorPolicyTest {
 
     @Test
-    public void migratesOnlyUsersWithoutAnExplicitSelection() {
-        assertTrue(ThemeColorPolicy.shouldMigrate(false, 0));
+    public void migratesOnlyWhenContainsReportsNoKey() {
+        boolean hasKey = false;
+        assertTrue(ThemeColorPolicy.shouldMigrate(hasKey, 0));
         assertFalse(ThemeColorPolicy.shouldMigrate(true, 0));
-        assertFalse(ThemeColorPolicy.shouldMigrate(false, ThemeColorPolicy.VERSION));
+        assertFalse(ThemeColorPolicy.shouldMigrate(hasKey, ThemeColorPolicy.VERSION));
     }
 
     @Test

@@ -8,6 +8,9 @@
     <color name="theme_green_light">#C8E6C9</color>
     <color name="theme_green_surface">#F1F8E9</color>
     <color name="theme_green_ripple">#1A43A047</color>
+    <color name="scrollbar_track">#DADCE0</color>
+    <color name="debug_header_surface">#F5F6F7</color>
+    <color name="debug_error_surface">#FFF1F1</color>
     <color name="black_05">#0D000000</color>
     <color name="black_10">#1A000000</color>
     <color name="black_15">#26000000</color>

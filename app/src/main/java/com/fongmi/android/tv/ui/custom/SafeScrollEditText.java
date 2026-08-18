@@ -2,7 +2,6 @@ package com.fongmi.android.tv.ui.custom;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.Layout;
@@ -11,6 +10,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
 
+import androidx.core.content.ContextCompat;
+
+import com.fongmi.android.tv.R;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class SafeScrollEditText extends TextInputEditText {
@@ -49,8 +51,8 @@ public class SafeScrollEditText extends TextInputEditText {
         setVerticalScrollBarEnabled(false);
         setOverScrollMode(View.OVER_SCROLL_NEVER);
         setWillNotDraw(false);
-        trackPaint.setColor(Color.parseColor("#DADCE0"));
-        thumbPaint.setColor(Color.parseColor("#185ABC"));
+        trackPaint.setColor(ContextCompat.getColor(getContext(), R.color.scrollbar_track));
+        thumbPaint.setColor(ContextCompat.getColor(getContext(), R.color.theme_green_dark));
     }
 
     @Override

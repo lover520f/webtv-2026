@@ -8,11 +8,12 @@ public final class ThemeColorPolicy {
     private ThemeColorPolicy() {
     }
 
-    public static boolean shouldMigrate(boolean hasExplicitSelection, int appliedVersion) {
-        return !hasExplicitSelection && appliedVersion < VERSION;
+    /** v5.9.3: migrate only when the theme_color preference key has never existed. */
+    public static boolean shouldMigrate(boolean hasKey, int appliedVersion) {
+        return !hasKey && appliedVersion < VERSION;
     }
 
-    public static int resolve(boolean hasExplicitSelection, int selectedColor) {
-        return hasExplicitSelection ? selectedColor : DEFAULT_GREEN;
+    public static int resolve(boolean hasKey, int selectedColor) {
+        return hasKey ? selectedColor : DEFAULT_GREEN;
     }
 }

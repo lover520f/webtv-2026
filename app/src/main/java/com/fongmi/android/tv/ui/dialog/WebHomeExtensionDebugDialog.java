@@ -16,6 +16,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
@@ -637,7 +638,7 @@ public class WebHomeExtensionDebugDialog extends BaseAlertDialog implements Home
         row.setOrientation(LinearLayoutCompat.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(8), dp(6), dp(8), dp(6));
-        row.setBackgroundColor(entry == null ? Color.parseColor("#F5F6F7") : selected ? Color.parseColor("#DCEBFF") : entry.isError() ? Color.parseColor("#FFF1F1") : Color.WHITE);
+        row.setBackgroundColor(entry == null ? ContextCompat.getColor(requireContext(), R.color.debug_header_surface) : selected ? ContextCompat.getColor(requireContext(), R.color.theme_green_light) : entry.isError() ? ContextCompat.getColor(requireContext(), R.color.debug_error_surface) : Color.WHITE);
         row.addView(networkCell(entry == null ? "#" : String.valueOf(entry.id), 46, color(entry), entry == null));
         row.addView(networkCell(entry == null ? "Time" : entry.time, 104, color(entry), entry == null));
         row.addView(networkCell(entry == null ? "Type" : entry.displayKind(), 82, color(entry), entry == null));
@@ -664,7 +665,7 @@ public class WebHomeExtensionDebugDialog extends BaseAlertDialog implements Home
     }
 
     private MaterialTextView networkUrlCell(String value, boolean header) {
-        MaterialTextView view = networkText(value, 12, header ? Color.BLACK : Color.parseColor("#2E7D32"), header);
+        MaterialTextView view = networkText(value, 12, header ? Color.BLACK : ContextCompat.getColor(requireContext(), R.color.theme_green_dark), header);
         LinearLayoutCompat.LayoutParams params = new LinearLayoutCompat.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         view.setMinWidth(dp(620));
         view.setLayoutParams(params);
