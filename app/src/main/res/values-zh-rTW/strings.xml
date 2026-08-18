@@ -329,6 +329,11 @@ WebHomeTV 是播放器外殼，不內建內容源，請使用合法設定。</st
     <string name="setting_custom">自訂</string>
     <string name="setting_size">圖片尺寸</string>
     <string name="setting_language">語言</string>
+    <string name="setting_theme">電視主題</string>
+    <string name="setting_theme_green">綠色</string>
+    <string name="setting_theme_blue">藍色</string>
+    <string name="setting_theme_amber">琥珀色</string>
+    <string name="setting_theme_violet">紫色</string>
     <string name="setting_ui_scale">介面大小</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>

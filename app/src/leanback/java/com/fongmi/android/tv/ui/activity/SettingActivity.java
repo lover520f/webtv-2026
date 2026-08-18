@@ -58,6 +58,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private ActivitySettingBinding mBinding;
     private String[] size;
     private String[] language;
+    private static final int[] THEME_COLORS = {0xFF43A047, 0xFF1976D2, 0xFFFFA000, 0xFF7E57C2};
+    private static final int[] THEME_NAMES = {R.string.setting_theme_green, R.string.setting_theme_blue, R.string.setting_theme_amber, R.string.setting_theme_violet};
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -99,6 +101,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[PlayerSetting.getSize()]);
         mBinding.languageText.setText((language = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguageIndex()]);
+        mBinding.themeText.setText(THEME_NAMES[getThemeIndex()]);
     }
 
     private void setCacheText() {
@@ -118,6 +121,7 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.language.setOnClickListener(this::setLanguage);
+        mBinding.theme.setOnClickListener(this::setTheme);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.enhance.setOnClickListener(this::onEnhance);
@@ -326,6 +330,18 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
         int index = (Setting.getLanguageIndex() + 1) % language.length;
         Setting.putLanguageIndex(index);
         RefreshEvent.language();
+    }
+
+    private int getThemeIndex() {
+        int color = Setting.getDynamicColor();
+        for (int i = 0; i < THEME_COLORS.length; i++) if (THEME_COLORS[i] == color) return i;
+        return 0;
+    }
+
+    private void setTheme(View view) {
+        int index = (getThemeIndex() + 1) % THEME_COLORS.length;
+        Setting.putThemeColor(THEME_COLORS[index]);
+        RefreshEvent.theme();
     }
 
     private void setDoh(View view) {

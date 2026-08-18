@@ -37,11 +37,10 @@
         <item name="keep_content_on_player_reset">true</item>
     </style>
 
-    <style name="Theme.WebHTV.LightDialog" parent="Theme.Material3.Dialog.Alert">
+    <style name="Theme.WebHTV.LightDialog" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:fontFamily">sans</item>
-        <item name="android:textCursorDrawable">?attr/textCursorDrawable</item>
     </style>
 
     <!-- Kept for callers; all colors come from the hosting Activity theme. -->

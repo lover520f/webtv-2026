@@ -19,6 +19,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
+import com.fongmi.android.tv.ui.custom.LeanbackTheme;
 import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
@@ -40,6 +41,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getBinding().getRoot());
+        LeanbackTheme.apply(this);
         EventBus.getDefault().register(this);
         initView(savedInstanceState);
         Util.hideSystemUI(this);
@@ -104,7 +106,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSubscribe(Object o) {
-        if (o instanceof RefreshEvent event && event.getType() == RefreshEvent.Type.LANGUAGE && !isFinishing() && !isDestroyed()) recreate();
+        if (o instanceof RefreshEvent event && (event.getType() == RefreshEvent.Type.LANGUAGE || event.getType() == RefreshEvent.Type.THEME) && !isFinishing() && !isDestroyed()) recreate();
     }
 
     @Override

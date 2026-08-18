@@ -361,6 +361,11 @@ WebHomeTV is a player shell. It does not include content sources. Please use law
     <string name="setting_custom">Custom</string>
     <string name="setting_size">Image size</string>
     <string name="setting_language">Language</string>
+    <string name="setting_theme">TV theme</string>
+    <string name="setting_theme_green">Green</string>
+    <string name="setting_theme_blue">Blue</string>
+    <string name="setting_theme_amber">Amber</string>
+    <string name="setting_theme_violet">Violet</string>
     <string name="setting_ui_scale">Interface size</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
