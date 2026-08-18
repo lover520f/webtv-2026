@@ -60,6 +60,11 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         return redirect;
     }
 
+    @Override
+    protected boolean themeOrdinaryPage() {
+        return false;
+    }
+
     protected void setRedirect(boolean redirect) {
         this.redirect = redirect;
         if (mService != null) mService.setNavigationCallback(redirect ? null : getNavigationCallback(), getPlaybackKey());

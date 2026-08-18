@@ -53,7 +53,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void setContentView(View view) {
         super.setContentView(view);
-        ThemeSurfaceApplier.apply(view);
+        if (themeOrdinaryPage()) ThemeSurfaceApplier.apply(view);
         if (!customWall()) return;
         addCustomWall();
     }
@@ -67,6 +67,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     protected boolean customWall() {
+        return true;
+    }
+
+    /** Playback subclasses opt out so theme changes never repaint or recreate media pages. */
+    protected boolean themeOrdinaryPage() {
         return true;
     }
 
@@ -129,7 +134,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onSubscribe(Object o) {
-        if (o instanceof RefreshEvent event && (event.getType() == RefreshEvent.Type.LANGUAGE || event.getType() == RefreshEvent.Type.THEME) && !isFinishing() && !isDestroyed()) recreate();
+        if (o instanceof RefreshEvent event && (event.getType() == RefreshEvent.Type.LANGUAGE || event.getType() == RefreshEvent.Type.THEME && themeOrdinaryPage()) && !isFinishing() && !isDestroyed()) recreate();
     }
 
     protected void onBackInvoked() {

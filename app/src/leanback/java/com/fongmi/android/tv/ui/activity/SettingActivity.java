@@ -107,7 +107,8 @@ public class SettingActivity extends BaseActivity implements ConfigListener, Sit
     private String getThemeLabel() {
         int color = Setting.getThemeColor();
         for (int i = 0; i < THEME_COLORS.length; i++) if (THEME_COLORS[i] == color) return getString(THEME_NAMES[i]);
-        if (color == -1 || color == 0) return getString(R.string.setting_theme_color);
+        if (color == -1) return getString(R.string.setting_off);
+        if (color == 0) return getString(R.string.setting_auto);
         return String.format(java.util.Locale.ROOT, "#%06X", color & 0xFFFFFF);
     }
 

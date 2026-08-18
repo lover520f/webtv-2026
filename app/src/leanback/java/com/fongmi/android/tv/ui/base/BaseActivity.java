@@ -41,7 +41,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(getBinding().getRoot());
-        LeanbackTheme.apply(this);
+        if (themeOrdinaryPage()) LeanbackTheme.apply(this);
         EventBus.getDefault().register(this);
         initView(savedInstanceState);
         Util.hideSystemUI(this);
@@ -65,6 +65,10 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     protected boolean customWall() {
+        return true;
+    }
+
+    protected boolean themeOrdinaryPage() {
         return true;
     }
 

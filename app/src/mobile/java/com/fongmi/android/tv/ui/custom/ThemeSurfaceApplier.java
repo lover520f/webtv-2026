@@ -2,44 +2,32 @@ package com.fongmi.android.tv.ui.custom;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import androidx.recyclerview.widget.RecyclerView;
-
-import androidx.media3.ui.PlayerView;
-
+import com.fongmi.android.tv.setting.ThemeSurfaceRoles;
 import com.google.android.material.R;
-import com.google.android.material.color.MaterialColors;
 
-/** Applies theme roles to ordinary screens; media surfaces and imagery are deliberately untouched. */
+/** Themes only an ordinary page root. Child drawables, media surfaces and wallpaper are never traversed. */
 public final class ThemeSurfaceApplier {
-    private ThemeSurfaceApplier() {}
+
+    private ThemeSurfaceApplier() {
+    }
 
     public static void apply(View root) {
-        if (root != null) theme(root, true);
+        if (root == null || root instanceof CustomWallView || !canReplace(root.getBackground())) return;
+        root.setBackgroundColor(resolve(root, R.attr.colorSurface, ThemeSurfaceRoles.FALLBACK_SURFACE));
     }
 
-    private static void theme(View view, boolean root) {
-        if (view instanceof ImageView || view instanceof PlayerView || view instanceof CustomWallView) return;
-        if (root || view instanceof ViewGroup && !(view instanceof RecyclerView)) {
-            view.setBackgroundColor(MaterialColors.getColor(view, R.attr.colorSurface));
-        } else if (view.getBackground() instanceof ColorDrawable) {
-            int color = ((ColorDrawable) view.getBackground()).getColor();
-            if (isNeutral(color)) view.setBackgroundColor(MaterialColors.getColor(view, R.attr.colorSurfaceContainer));
-        }
-        if (view instanceof TextView text && isNeutral(text.getCurrentTextColor())) {
-            text.setTextColor(MaterialColors.getColor(text, R.attr.colorOnSurface));
-        }
-        if (view instanceof ViewGroup group) {
-            for (int i = 0; i < group.getChildCount(); i++) theme(group.getChildAt(i), false);
-        }
+    private static boolean canReplace(Drawable background) {
+        if (background == null) return true;
+        if (!(background instanceof ColorDrawable color)) return false;
+        return color.getColor() == Color.TRANSPARENT || ThemeSurfaceRoles.isNeutralSurface(color.getColor());
     }
 
-    private static boolean isNeutral(int color) {
-        int rgb = color & 0x00FFFFFF;
-        return color == Color.BLACK || color == Color.WHITE || rgb == 0x747474 || rgb == 0xF3F5F7 || rgb == 0xDADCE0;
+    private static int resolve(View view, int attr, int fallback) {
+        TypedValue value = new TypedValue();
+        return view.getContext().getTheme().resolveAttribute(attr, value, true) && value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT ? value.data : fallback;
     }
 }
