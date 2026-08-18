@@ -48,7 +48,7 @@
             android:paddingEnd="8dp"
             android:text="@string/sync_paths_up"
             android:textColor="@color/dialog_text_button"
-            app:rippleColor="@color/theme_green_ripple" />
+            app:rippleColor="?attr/colorControlHighlight" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/current"
@@ -74,7 +74,7 @@
             android:paddingEnd="8dp"
             android:text="@string/sync_paths_refresh"
             android:textColor="@color/dialog_text_button"
-            app:rippleColor="@color/theme_green_ripple" />
+            app:rippleColor="?attr/colorControlHighlight" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -119,7 +119,7 @@
             android:minWidth="0dp"
             android:text="@string/dialog_reset"
             android:textColor="@color/dialog_text_button"
-            app:rippleColor="@color/theme_green_ripple" />
+            app:rippleColor="?attr/colorControlHighlight" />
 
         <Space
             android:layout_width="0dp"

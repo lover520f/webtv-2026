@@ -70,7 +70,7 @@ public final class LightDialog {
         if (title != null) {
             MaterialTextView titleView = new MaterialTextView(context);
             titleView.setText(title);
-            titleView.setTextColor(Color.parseColor("#202124"));
+            titleView.setTextColor(com.google.android.material.color.MaterialColors.getColor(titleView, com.google.android.material.R.attr.colorOnSurface));
             titleView.setTextSize(18);
             titleView.setGravity(Gravity.CENTER_VERTICAL);
             root.addView(titleView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/theme_green_light" android:state_focused="true" />
-    <item android:color="@color/theme_green_light" android:state_pressed="true" />
-    <item android:alpha="0.38" android:color="@color/theme_green_light" android:state_enabled="false" />
-    <item android:color="@color/theme_green_light" />
+    <item android:color="?attr/colorSecondaryContainer" android:state_focused="true" />
+    <item android:color="?attr/colorSecondaryContainer" android:state_pressed="true" />
+    <item android:alpha="0.38" android:color="?attr/colorSecondaryContainer" android:state_enabled="false" />
+    <item android:color="?attr/colorSecondaryContainer" />
 </selector>

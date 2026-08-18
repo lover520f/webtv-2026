@@ -23,7 +23,7 @@
         android:background="@drawable/shape_mpv_active_badge"
         android:padding="8dp"
         android:src="@drawable/ic_file"
-        android:tint="@color/theme_green_dark" />
+        android:tint="?attr/colorPrimary" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="0dp"
@@ -65,7 +65,7 @@
         android:paddingStart="9dp"
         android:paddingEnd="9dp"
         android:text="@string/mpv_config_in_use"
-        android:textColor="@color/theme_green_dark"
+        android:textColor="?attr/colorPrimary"
         android:textSize="11sp"
         android:visibility="gone"
         tools:visibility="visible" />
