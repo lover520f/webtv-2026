@@ -41,13 +41,13 @@
         android:icon="@drawable/ic_popup_apk"
         android:title="@string/menu_push_apk"
         app:iconTint="@color/white"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/push_play"
         android:icon="@drawable/ic_popup_push"
         android:title="@string/menu_push_play"
         app:iconTint="@color/white"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
 
 </menu>
