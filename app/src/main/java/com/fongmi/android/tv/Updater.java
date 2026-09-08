@@ -103,29 +103,36 @@ public class Updater implements UpdateListener, UpdateTransfer.Callback {
     }
 
     private Update fetchUpdate() throws Exception {
+        Update best = null;
         Exception last = null;
         for (String url : Github.getJsonCandidates(getFlavor())) {
             try {
-                JSONObject object = new JSONObject(OkHttp.string(url));
-                Update update = Update.empty(Update.CHANNEL_STABLE);
-                update.name = object.optString("name");
-                update.versionName = object.optString("versionName");
-                update.desc = object.optString("desc");
-                update.code = object.optInt("code");
-                update.apk = object.optString("apk", getFlavor() + ".apk");
-                update.size = object.optLong("size");
-                update.sha256 = object.optString("sha256");
-                update.cnb = object.optBoolean("cnb", true);
-                String apk = TextUtils.isEmpty(update.apk) ? getFlavor() + ".apk" : update.apk;
-                update.githubUrl = GITHUB_RELEASE + "/" + fileName(apk);
-                update.cnbUrl = CNB_RELEASE + "/" + fileName(apk);
-                return update;
+                Update update = readManifest(url);
+                if (best == null || update.code > best.code) best = update;
             } catch (Exception e) {
                 SpiderDebug.log(e);
                 last = e;
             }
         }
-        throw last != null ? last : new IllegalStateException("No update source reachable");
+        if (best == null) throw last != null ? last : new IllegalStateException("No update source reachable");
+        return best;
+    }
+
+    private Update readManifest(String url) throws Exception {
+        JSONObject object = new JSONObject(OkHttp.string(url));
+        Update update = Update.empty(Update.CHANNEL_STABLE);
+        update.name = object.optString("name");
+        update.versionName = object.optString("versionName");
+        update.desc = object.optString("desc");
+        update.code = object.optInt("code");
+        update.apk = object.optString("apk", getFlavor() + ".apk");
+        update.size = object.optLong("size");
+        update.sha256 = object.optString("sha256");
+        update.cnb = object.optBoolean("cnb", true);
+        String apk = TextUtils.isEmpty(update.apk) ? getFlavor() + ".apk" : update.apk;
+        update.githubUrl = GITHUB_RELEASE + "/" + fileName(apk);
+        update.cnbUrl = CNB_RELEASE + "/" + fileName(apk);
+        return update;
     }
 
     private String fileName(String apk) {
