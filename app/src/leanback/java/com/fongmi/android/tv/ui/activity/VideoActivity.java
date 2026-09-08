@@ -58,6 +58,7 @@ import com.fongmi.android.tv.model.SearchProgress;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.PlayerHelper;
 import com.fongmi.android.tv.player.PlayerManager;
+import com.fongmi.android.tv.player.lut.LutSetting;
 import com.fongmi.android.tv.player.lut.LutPreset;
 import com.fongmi.android.tv.player.lut.LutStore;
 import com.fongmi.android.tv.playback.PlaybackEventCollector;
@@ -554,7 +555,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void setLut() {
-        mBinding.control.action.lut.setText(player().getLutText());
+        mBinding.control.action.lut.setText(LutSetting.getButtonText());
     }
 
     private void onLutChanged() {
