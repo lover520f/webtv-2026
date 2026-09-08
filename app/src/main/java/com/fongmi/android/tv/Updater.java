@@ -276,11 +276,20 @@ public class Updater implements UpdateListener, UpdateTransfer.Callback {
 
     private void install(File file) {
         try {
-            FileUtil.openFile(file);
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(FileUtil.getShareUri(file), "application/vnd.android.package-archive");
+            if (!App.get().getPackageManager().queryIntentActivities(intent, 0).isEmpty()) {
+                App.get().startActivity(intent);
+                dismiss();
+                return;
+            }
+            SpiderDebug.log("Updater", "no installer activity resolved for apk view intent");
         } catch (Exception e) {
             SpiderDebug.log(e);
-            copyAndOpen(Github.getApk(getFlavor()), GITHUB_RELEASE + "/" + getFlavor() + ".apk");
         }
+        Notify.show(R.string.update_export_failed);
+        copyAndOpen(Github.getApk(getFlavor()), GITHUB_RELEASE + "/" + getFlavor() + ".apk");
         dismiss();
     }
 
@@ -295,10 +304,16 @@ public class Updater implements UpdateListener, UpdateTransfer.Callback {
     private boolean validatePackage(File file, Update update) {
         try {
             PackageManager manager = App.get().getPackageManager();
-            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
-            PackageInfo archive = manager.getPackageArchiveInfo(file.getAbsolutePath(), flags);
-            PackageInfo installed = manager.getPackageInfo(BuildConfig.APPLICATION_ID, flags);
-            if (archive == null || installed == null || !BuildConfig.APPLICATION_ID.equals(archive.packageName)) return false;
+            PackageInfo archive = manager.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
+            if (archive == null || !BuildConfig.APPLICATION_ID.equals(archive.packageName)) return false;
+            // getPackageArchiveInfo frequently returns signingInfo == null for
+            // NOT-installed packages on API 28+; fall back to GET_SIGNATURES,
+            // which reliably parses signatures from an archive file.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && archive.signingInfo == null) {
+                archive = manager.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_SIGNATURES);
+                if (archive == null) return false;
+            }
+            PackageInfo installed = manager.getPackageInfo(BuildConfig.APPLICATION_ID, Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES);
             long archiveCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? archive.getLongVersionCode() : archive.versionCode;
             if (update != null && update.code > 0 && archiveCode != update.code) return false;
             if (update != null && !TextUtils.isEmpty(update.versionName) && !update.versionName.equals(archive.versionName)) return false;
@@ -309,18 +324,22 @@ public class Updater implements UpdateListener, UpdateTransfer.Callback {
     }
 
     private boolean signaturesMatch(PackageInfo installed, PackageInfo archive) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (installed.signingInfo == null || archive.signingInfo == null) return false;
-            if (installed.signingInfo.hasMultipleSigners() || archive.signingInfo.hasMultipleSigners()) {
-                return fingerprints(installed.signingInfo.getApkContentsSigners()).equals(fingerprints(archive.signingInfo.getApkContentsSigners()));
-            }
-            Set<String> current = fingerprints(installed.signingInfo.getApkContentsSigners());
-            Set<String> candidateHistory = fingerprints(installed.signingInfo.getSigningCertificateHistory());
-            Set<String> archiveHistory = fingerprints(archive.signingInfo.getSigningCertificateHistory());
-            Set<String> archiveContents = fingerprints(archive.signingInfo.getApkContentsSigners());
-            return current.equals(archiveContents) || archiveHistory.containsAll(current);
+        Set<String> current = currentFingerprints(installed);
+        if (current.isEmpty()) return false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && archive.signingInfo != null) {
+            if (current.equals(fingerprints(archive.signingInfo.getApkContentsSigners()))) return true;
+            if (!archive.signingInfo.hasMultipleSigners()) return fingerprints(archive.signingInfo.getSigningCertificateHistory()).containsAll(current);
+            return false;
         }
-        return fingerprints(installed.signatures).equals(fingerprints(archive.signatures));
+        return !current.isEmpty() && current.equals(fingerprints(archive.signatures));
+    }
+
+    private Set<String> currentFingerprints(PackageInfo installed) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && installed.signingInfo != null) {
+            Signature[] signers = installed.signingInfo.hasMultipleSigners() ? installed.signingInfo.getApkContentsSigners() : installed.signingInfo.getSigningCertificateHistory();
+            return fingerprints(signers);
+        }
+        return fingerprints(installed.signatures);
     }
 
     private Set<String> fingerprints(Signature[] signatures) {
