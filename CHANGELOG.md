@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.10.7 — 修复点击播放即崩溃（无限递归） (2026-09-08)
+
+- 修复手机/电视端进入详情页后点击播放即崩溃（StackOverflowError）：音频舞台控制器的 `Host.service()` 实现误写成 `return service();`——匿名内部类里这会解析到**自己**，形成无限递归。改为 `return VideoActivity.this.service();`。全仓扫描确认无其他同类写法。
+- 该缺陷在 v5.10.5 之前被 `setLut` 的 onCreate 崩溃（5.10.6 已修）掩盖，播放链路修复后暴露。
+
 ## 5.10.6 — 修复进入详情页即崩溃 (2026-09-08)
 
 - 修复 v5.10.3 起手机/电视端进入视频详情页必崩的问题：LUT 按钮文案刷新（`setLut`）在 onCreate 阶段经 `player()` 读取播放服务字段，而播放服务此时尚未绑定 → NullPointerException。改为直接使用静态 `LutSetting.getButtonText()`，不再依赖播放器实例（R8 反混淆定位：崩溃点 `i2 = setLut`，调用链 `onCreate → initView → setVideoView → setLut`）。

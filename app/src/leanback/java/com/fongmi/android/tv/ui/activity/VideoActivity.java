@@ -519,7 +519,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         mAudio = new AudioStageController(new AudioStageController.Host() {
             @Override public FragmentActivity activity() { return VideoActivity.this; }
             @Override public PlayerManager player() { return service() == null ? null : VideoActivity.this.player(); }
-            @Override public PlaybackService service() { return service(); }
+            @Override public PlaybackService service() { return VideoActivity.this.service(); }
             @Override public History history() { return mHistory; }
             @Override public Site getSite() { return VideoActivity.this.getSite(); }
             @Override public String getSiteKey() { return getKey(); }
