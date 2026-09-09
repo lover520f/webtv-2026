@@ -2081,7 +2081,9 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     protected void onStop() {
         super.onStop();
         if (mOsd != null) mOsd.stop();
-        PlaybackEventCollector.get().onStop(player());
+        // The media service can unbind while the activity is still stopping (session teardown,
+        // background kill); every player touch here must survive a null service.
+        if (service() != null) PlaybackEventCollector.get().onStop(player());
         if (PlayerSetting.isBackgroundOff()) mClock.stop();
         if (!isAudioOnly()) setStop(true);
     }

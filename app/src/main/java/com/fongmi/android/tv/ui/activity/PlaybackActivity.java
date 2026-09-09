@@ -37,6 +37,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     private ListenableFuture<MediaController> mControllerFuture;
     private MediaController mController;
+    private boolean controllerRetried;
     private PlaybackService mService;
     private boolean audioOnly;
     private boolean redirect;
@@ -215,10 +216,16 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
             getSeekView().setPlayer(mController);
             mController.addListener(this);
         } catch (Exception e) {
-            // Without a controller the UI would hit null on every state query; surface the
-            // failure instead of silently continuing with mController == null.
+            // The controller only mirrors session state for the seek bar and play/pause UI;
+            // actual playback runs through the bound service. A failed build must NOT call
+            // onError(), which stops the player and starts the source-failover flow. Log it,
+            // retry once, and leave the null-guarded access points to degrade gracefully.
+            mController = null;
             SpiderDebug.log("playback-flow", "controller build failed", e);
-            onError(ResUtil.getString(R.string.error_play_player));
+            if (!controllerRetried) {
+                controllerRetried = true;
+                buildControllerAsync();
+            }
         }
         SpiderDebug.log("playback-flow", "controller connected cost=%dms key=%s", System.currentTimeMillis() - start, getPlaybackKey());
     }
