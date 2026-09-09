@@ -72,7 +72,7 @@
 
 ## 下载安装
 
-最新版本：**v5.10.7**
+最新版本：**v5.11.0**
 
 项目主页（GitHub Pages）：https://motao123.github.io/webtv/
 
@@ -285,6 +285,13 @@ App 内更新入口：
 - 迅雷网盘签名密钥内嵌于客户端，属客户端签名固有限制，无法真正隐藏。
 - 直播/媒体源普遍使用明文 HTTP，无法全局禁用；配置源与更新服务器已强制 HTTPS。
 - Android `addJavascriptInterface` 无法按 iframe 区分信任来源，跨源 iframe 信任边界为平台限制。
+
+v5.11.0 追加（基于全面代码审计）：
+
+- `/m3u8` 代理目标强制公网校验，端点纳入 IP 保护清单；`/webResource` 禁止被外部页面 iframe，CORS 白名单收紧到精确端口。
+- WebHome 桥的敏感读取方法要求主帧 bridgeToken（缓解跨源 iframe 冒用受信身份）。
+- 登录态同步档案改为 AES-GCM 加密传输（密钥=对端配对 token）；同步请求统一要求配对码认证。
+- 连接时私网 DNS 过滤（封堵 DNS 重绑定 TOCTOU），私网判定补齐 CGNAT/198.18/NAT64 网段。
 
 ---
 

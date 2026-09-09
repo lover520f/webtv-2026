@@ -20,6 +20,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/desc_back"
             android:scaleType="center"
             android:src="@drawable/ic_control_back" />
 
@@ -67,6 +68,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/desc_cast"
                 android:scaleType="center"
                 android:src="@drawable/ic_control_cast" />
 
@@ -75,6 +77,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/desc_info"
                 android:scaleType="center"
                 android:src="@drawable/ic_control_info" />
 
@@ -83,6 +86,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/desc_keep"
                 android:scaleType="center"
                 android:src="@drawable/ic_control_keep_off" />
 
@@ -91,6 +95,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/desc_setting"
                 android:scaleType="center"
                 android:src="@drawable/ic_control_setting" />
 
@@ -110,6 +115,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/shape_control"
+            android:contentDescription="@string/desc_prev"
             android:src="@drawable/exo_icon_previous"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -121,6 +127,7 @@
             android:layout_marginStart="40dp"
             android:layout_marginEnd="40dp"
             android:background="@drawable/shape_control"
+            android:contentDescription="@string/desc_play"
             android:src="@drawable/exo_icon_play" />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -128,6 +135,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/shape_control"
+            android:contentDescription="@string/desc_next"
             android:src="@drawable/exo_icon_next"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -148,6 +156,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/desc_danmaku"
             android:scaleType="center"
             android:src="@drawable/ic_control_danmaku_on" />
 
@@ -202,6 +211,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/desc_fullscreen"
                 android:scaleType="center"
                 android:src="@drawable/ic_control_fullscreen" />
 

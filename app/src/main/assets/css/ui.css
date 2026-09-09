@@ -94,10 +94,11 @@ body.manage-page.local-mode .remote-only {
     display: flex;
     flex-direction: column;
     height: 100%;
-    max-width: 600px;
     margin: 0 auto;
 }
 
+/* ID selectors must not fight utility classes here: .manage-app widens the shell on
+   desktop, and a max-width on #app would win by specificity and cap it at phone width. */
 .manage-app { max-width: 1120px; }
 
 .manage-top {
@@ -502,7 +503,7 @@ body.manage-page.local-mode .remote-only {
     cursor: pointer;
 }
 
-.check-row input { width: 20px; height: 20px; accent-color: var(--md-primary); }
+.check-row input { width: 24px; height: 24px; accent-color: var(--md-primary); }
 
 .chip-list {
     display: flex;
@@ -544,7 +545,7 @@ body.manage-page.local-mode .remote-only {
     flex: 0 0 auto;
 }
 
-.tree-check input { width: 22px; height: 22px; accent-color: var(--md-primary); }
+.tree-check input { width: 24px; height: 24px; accent-color: var(--md-primary); }
 
 .tree-main {
     display: flex;
@@ -713,10 +714,10 @@ body.manage-page.local-mode .remote-only {
 .file-action {
     flex: 0 0 auto;
     min-width: 52px;
-    height: 36px;
+    height: 44px;
     padding: 0 10px;
     border: none;
-    border-radius: 18px;
+    border-radius: 22px;
     background: transparent;
     color: var(--md-primary);
     font: inherit;

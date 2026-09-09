@@ -35,20 +35,7 @@ import okhttp3.Response;
 public class WebCall {
 
     private static final long MAX_BODY_BYTES = 32L * 1024 * 1024;
-    private static final OkHttpClient CLIENT = new OkHttpClient.Builder().followRedirects(true).followSslRedirects(true).dns(new FilteringDns()).proxySelector(OkHttp.selector()).proxyAuthenticator(OkHttp.authenticator()).build();
-
-    private static class FilteringDns implements okhttp3.Dns {
-        @Override
-        public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-            List<InetAddress> addresses = OkHttp.dns().lookup(hostname);
-            for (InetAddress address : addresses) {
-                if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress()) {
-                    throw new UnknownHostException("Private address not allowed: " + hostname);
-                }
-            }
-            return addresses;
-        }
-    }
+    private static final OkHttpClient CLIENT = new OkHttpClient.Builder().followRedirects(true).followSslRedirects(true).dns(new com.fongmi.android.tv.utils.FilteringDns()).proxySelector(OkHttp.selector()).proxyAuthenticator(OkHttp.authenticator()).build();
 
     public static String request(JsonObject payload) {
         return request(payload, null);

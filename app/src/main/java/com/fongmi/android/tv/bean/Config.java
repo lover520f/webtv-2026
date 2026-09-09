@@ -250,7 +250,15 @@ public class Config {
 
     public Config insert() {
         if (isEmpty()) return this;
-        setId(Math.toIntExact(AppDatabase.get().getConfigDao().insert(this)));
+        long id = AppDatabase.get().getConfigDao().insert(this);
+        // A unique-index conflict returns -1 (row untouched): fall back to the existing row
+        // instead of keeping id=-1, which would make later updates silently no-op.
+        if (id == -1) {
+            Config current = AppDatabase.get().getConfigDao().find(getUrl(), getType());
+            setId(current == null ? 0 : current.getId());
+        } else {
+            setId(Math.toIntExact(id));
+        }
         return this;
     }
 

@@ -126,6 +126,8 @@ public class VodConfig extends BaseConfig {
         return !getSites().isEmpty();
     }
 
+    private Config lastGood;
+
     @Override
     protected void beforeLoad() {
         CspWarmup.reset();
@@ -133,7 +135,17 @@ public class VodConfig extends BaseConfig {
 
     @Override
     protected void onLoadSuccess() {
+        lastGood = config;
         CspWarmup.schedule("vod-config-loaded");
+    }
+
+    @Override
+    protected void onLoadFailed(Config failed) {
+        // load() clears in-memory sites before the async fetch; if the fetch fails the home page
+        // would stay empty. Fall back to the last configuration that loaded successfully.
+        Config previous = lastGood;
+        if (previous == null || TextUtils.isEmpty(previous.getUrl()) || previous.getUrl().equals(failed.getUrl())) return;
+        App.post(() -> load(previous, new Callback()));
     }
 
     private void checkJson(Config config, JsonObject object) throws Throwable {
@@ -151,8 +163,12 @@ public class VodConfig extends BaseConfig {
         List<Config> configs = new ArrayList<>();
         for (Depot item : items) configs.add(Config.find(item, VOD));
         if (configs.isEmpty()) throw new Exception("Depot urls is empty");
+        // A depot pointing at itself (directly or via another depot) would otherwise recurse forever.
+        if (config.getUrl().equals(configs.get(0).getUrl())) throw new Exception("Depot urls loop");
         load(this.config = configs.get(0));
-        Config.delete(config.getUrl());
+        // Only remove the depot row of this config type; delete(url) would also drop live/wall
+        // configs that happen to share the URL.
+        Config.delete(config.getUrl(), VOD);
     }
 
     private void parseConfig(Config config, JsonObject object) {

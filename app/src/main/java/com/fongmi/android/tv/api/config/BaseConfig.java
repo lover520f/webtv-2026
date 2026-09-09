@@ -51,6 +51,9 @@ abstract class BaseConfig {
     protected void onLoadSuccess() {
     }
 
+    protected void onLoadFailed(Config failed) {
+    }
+
     public synchronized void ensureLoaded() {
         try {
             if (isLoaded()) return;
@@ -112,6 +115,7 @@ abstract class BaseConfig {
             if (taskId.get() != id) return;
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            onLoadFailed(config);
         } finally {
             if (taskId.get() == id) postEvent();
         }

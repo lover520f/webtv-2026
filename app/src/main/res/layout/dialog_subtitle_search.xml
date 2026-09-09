@@ -26,7 +26,7 @@
             android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
             android:maxLength="255"
             android:nextFocusDown="@id/recycler"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textSize="14sp" />
 
         <androidx.appcompat.widget.AppCompatImageView

@@ -26,6 +26,10 @@ import okhttp3.RequestBody;
 public class WebResourceGateway implements Process {
 
     private static final int MAX_REDIRECTS = 5;
+    // The gateway target comes from a request parameter, so the resolved address must be checked
+    // at connection time: a TTL=0 DNS name answers the pre-flight UrlSafety check with a public
+    // address and the actual connection with a rebinded private one (TOCTOU).
+    private static final okhttp3.OkHttpClient CLIENT = OkHttp.noRedirect().newBuilder().dns(new com.fongmi.android.tv.utils.FilteringDns()).build();
 
     @Override
     public boolean isRequest(IHTTPSession session, String url) {
@@ -65,7 +69,7 @@ public class WebResourceGateway implements Process {
     private okhttp3.Response executeWithRedirectCheck(Request request) throws Exception {
         for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
             SpiderDebug.log("web-resource", "%s %s", request.method(), request.url());
-            okhttp3.Response response = OkHttp.noRedirect().newCall(request).execute();
+            okhttp3.Response response = CLIENT.newCall(request).execute();
             int code = response.code();
             boolean redirect = code == 301 || code == 302 || code == 303 || code == 307 || code == 308;
             if (!redirect) return response;
@@ -127,6 +131,11 @@ public class WebResourceGateway implements Process {
         response.addHeader("Access-Control-Allow-Headers", "Content-Type,Range,X-Requested-With,Authorization");
         response.addHeader("Access-Control-Expose-Headers", "Content-Type,Content-Length,Content-Range,Accept-Ranges");
         response.addHeader("Access-Control-Max-Age", "86400");
+        // A remote page served through this gateway must not be framable by an external site:
+        // an evil.com iframe would execute with the loopback origin and read same-origin APIs.
+        // Same-origin embedding (media elements are unaffected) keeps legitimate page use intact.
+        response.addHeader("X-Frame-Options", "SAMEORIGIN");
+        response.addHeader("Content-Security-Policy", "frame-ancestors 'self'");
         return response;
     }
 
@@ -137,16 +146,9 @@ public class WebResourceGateway implements Process {
             URI uri = URI.create(origin);
             String host = uri.getHost();
             if (host == null) return false;
-            int port = uri.getPort();
-            if ("http".equals(uri.getScheme())) {
-                if ("127.0.0.1".equals(host) || "localhost".equals(host) || "[::1]".equals(host)) {
-                    return port == -1 || port == Proxy.getPort();
-                }
-            }
-            if ("https".equals(uri.getScheme()) && "localhost".equals(host)) {
-                return port == -1;
-            }
-            return false;
+            // Only an explicit loopback origin on the exact server port may read responses;
+            // accepting a missing port (default 80) would admit any local service on port 80.
+            return "http".equals(uri.getScheme()) && ("127.0.0.1".equals(host) || "localhost".equals(host) || "[::1]".equals(host)) && uri.getPort() == Proxy.getPort();
         } catch (Throwable e) {
             return false;
         }

@@ -38,6 +38,10 @@ public class Device implements Diffable<Device>, Comparable<Device> {
     private String ip;
     @SerializedName("type")
     private int type;
+    // Server token of the remote device, learned once during pairing; sync requests to this
+    // device append it because /action is a sensitive path that always requires a token.
+    @SerializedName("token")
+    private String token;
 
     @Ignore
     @SerializedName("serial")
@@ -138,6 +142,14 @@ public class Device implements Diffable<Device>, Comparable<Device> {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public String getToken() {
+        return TextUtils.isEmpty(token) ? "" : token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public void setSerial(String serial) {

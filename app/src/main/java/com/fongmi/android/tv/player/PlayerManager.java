@@ -91,7 +91,10 @@ public class PlayerManager implements ParseCallback {
     private ExoNetworkGuardController.State networkProtectionState = ExoNetworkGuardController.State.NORMAL;
     private ExoNetworkGuardController.ProtectionTier networkProtectionTier = ExoNetworkGuardController.ProtectionTier.NONE;
     private String networkProtectionReason;
-    private float userPlaybackSpeed = 1f;
+    // Starts at the configured default for a fresh session, then follows the user across
+    // media items: setMediaItem() must not reset it, or switching source/episode/subtitle
+    // would silently drop the chosen playback speed.
+    private float userPlaybackSpeed = PlayerSetting.getDefaultSpeed();
     private float networkProtectionSpeed = 1f;
     private float networkProtectionSupportedSpeed = 1f;
     private long networkProtectionMediaBitrate;
@@ -822,7 +825,7 @@ public class PlayerManager implements ParseCallback {
         setDanmakus(spec.getDanmakus());
         applyMpdHandling(spec);
         engine.start(spec.checkUa());
-        setSpeed(PlayerSetting.getDefaultSpeed());
+        setSpeed(userPlaybackSpeed);
         App.post(runnable, timeout);
         callback.onPrepare();
         initTrack = false;

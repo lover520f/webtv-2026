@@ -3,7 +3,9 @@ package com.fongmi.android.tv.server.process;
 import android.text.TextUtils;
 
 import com.fongmi.android.tv.server.Nano;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.server.impl.Process;
+import com.fongmi.android.tv.utils.UrlSafety;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
 
@@ -45,6 +47,9 @@ public class M3u8 implements Process {
     public Response doResponse(IHTTPSession session, String url, Map<String, String> files) {
         String target = session.getParms().get("url");
         if (!isHttp(target)) return Nano.error(Response.Status.BAD_REQUEST, "Missing or invalid url");
+        // The proxy target comes from a query param: without this guard any web page or LAN peer
+        // could turn the device into an SSRF relay against the router, intranet or cloud metadata.
+        if (!UrlSafety.isSafeHttpUrl(target)) return Nano.error(Response.Status.BAD_REQUEST, "Unsupported url");
         okhttp3.Response upstream = null;
         try {
             Request request = request(session, target);
@@ -136,7 +141,7 @@ public class M3u8 implements Process {
     }
 
     private String proxy(String target) {
-        return "http://127.0.0.1:9978/m3u8?url=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
+        return Server.get().getAddress("/m3u8?url=" + URLEncoder.encode(target, StandardCharsets.UTF_8));
     }
 
     private boolean isPlaylist(String url, MediaType type) {

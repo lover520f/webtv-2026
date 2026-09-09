@@ -13,10 +13,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -28,16 +29,21 @@ public class ScanTask {
     private static final int PORT_START = 9978;
     private static final int PORT_END = 9998;
     private static final int PARALLELISM = 64;
+    private static final long IDLE_TIMEOUT_SECONDS = 30;
 
     private final CopyOnWriteArrayList<Future<?>> future;
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
     private final OkHttpClient client;
     private Listener listener;
     private volatile boolean stopped;
 
     public ScanTask(Listener listener) {
         this.client = OkHttp.client(500);
-        this.executor = Executors.newFixedThreadPool(PARALLELISM);
+        // Idle core threads must die after a scan completes: finish() cannot shut the pool down
+        // because a second scan wave (ports 9979-9998) may still be queued. Without the idle
+        // timeout every HTTP-triggered scan leaked a permanent 64-thread pool.
+        this.executor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, IDLE_TIMEOUT_SECONDS, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+        this.executor.allowCoreThreadTimeOut(true);
         this.future = new CopyOnWriteArrayList<>();
         this.listener = listener;
     }

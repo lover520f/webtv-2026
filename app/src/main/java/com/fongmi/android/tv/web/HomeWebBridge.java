@@ -46,6 +46,7 @@ public class HomeWebBridge {
     private static final int INLINE_LIMIT = 12000;
     private static final int CHUNK_SIZE = 60000;
     private static final int DIAG_LIMIT = 80;
+    private static final List<String> MAIN_FRAME_ONLY = List.of("app.history", "site.info", "config.info", "device.info");
     private static final Map<String, Integer> CALL_COUNTS = new ConcurrentHashMap<>();
     private static final List<String> EVENTS = Collections.synchronizedList(new ArrayList<>());
 
@@ -84,6 +85,7 @@ public class HomeWebBridge {
 
     private String resourceUrl(String url, String options, boolean trusted) {
         JsonObject object = WebCall.object(options);
+        if (trusted && sensitiveRequest(object)) requireBridgeToken(object);
         if (!trusted && sensitiveRequest(object)) throw new SecurityException("Forbidden method: net.resourceUrl");
         StringBuilder builder = new StringBuilder(Server.get().getAddress("/webResource?url=")).append(encode(url));
         if (object.has("headers")) builder.append("&headers=").append(encode(object.get("headers").toString()));
@@ -182,10 +184,22 @@ public class HomeWebBridge {
     }
 
     private void guard(String method, JsonObject payload, boolean trusted) {
-        if (trusted) return;
+        if (trusted) {
+            // addJavascriptInterface exposes the bridge to every frame; reads that return device or
+            // configuration data must present the per-load main-frame bridge token, so a cross-origin
+            // iframe inside a trusted page cannot read them.
+            if (MAIN_FRAME_ONLY.contains(method) || sensitiveRequest(payload)) requireBridgeToken(payload);
+            return;
+        }
         if ("player.playUrl".equals(method) || "pan.play".equals(method)) validatePlayable(Json.safeString(payload, "url"));
         if (isUntrustedAllowed(method, payload)) return;
         throw new SecurityException("Forbidden method: " + method);
+    }
+
+    private void requireBridgeToken(JsonObject payload) {
+        String token = payload == null ? "" : Json.safeString(payload, "__tk");
+        String expected = controller.getBridgeToken();
+        if (TextUtils.isEmpty(expected) || !expected.equals(token)) throw new SecurityException("Bridge token required");
     }
 
     private boolean isUntrustedAllowed(String method, JsonObject payload) {

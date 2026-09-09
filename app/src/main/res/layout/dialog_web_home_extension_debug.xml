@@ -51,7 +51,7 @@
                 android:minWidth="84dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_tab_web"
                 android:textColor="@color/dialog_toggle_button_text"
                 app:backgroundTint="@color/dialog_toggle_button_bg"
@@ -66,7 +66,7 @@
                 android:minWidth="84dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_tab_console"
                 android:textColor="@color/dialog_toggle_button_text"
                 app:backgroundTint="@color/dialog_toggle_button_bg"
@@ -81,7 +81,7 @@
                 android:minWidth="84dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_tab_elements"
                 android:textColor="@color/dialog_toggle_button_text"
                 app:backgroundTint="@color/dialog_toggle_button_bg"
@@ -96,7 +96,7 @@
                 android:minWidth="84dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_tab_network"
                 android:textColor="@color/dialog_toggle_button_text"
                 app:backgroundTint="@color/dialog_toggle_button_bg"
@@ -111,7 +111,7 @@
                 android:minWidth="84dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_tab_code"
                 android:textColor="@color/dialog_toggle_button_text"
                 app:backgroundTint="@color/dialog_toggle_button_bg"
@@ -151,7 +151,6 @@
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:scrollHorizontally="true"
                 android:scrollbars="none"
-                android:singleLine="false"
                 android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -174,7 +173,6 @@
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:scrollHorizontally="true"
                 android:scrollbars="none"
-                android:singleLine="false"
                 android:textColor="@color/black" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -271,7 +269,7 @@
                     android:inputType="textNoSuggestions|textUri"
                     android:scrollHorizontally="true"
                     android:scrollbars="none"
-                    android:singleLine="true"
+                    android:maxLines="1"
                     android:textColor="@color/black"
                     android:textColorHint="#666666" />
 
@@ -383,8 +381,7 @@
                     android:padding="8dp"
                     android:scrollHorizontally="true"
                     android:scrollbars="none"
-                    android:singleLine="false"
-                    android:textColor="@color/black"
+                        android:textColor="@color/black"
                     android:textIsSelectable="true"
                     android:textSize="12sp" />
 
@@ -411,7 +408,6 @@
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:scrollHorizontally="true"
                 android:scrollbars="none"
-                android:singleLine="false"
                 android:textColor="@color/black"
                 android:textColorHint="#666666" />
 
@@ -442,7 +438,7 @@
                 android:minWidth="110dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_select_script"
                 android:textColor="@color/dialog_outlined_button_text"
                 android:visibility="gone"
@@ -457,7 +453,7 @@
                 android:minWidth="92dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_inspect_element"
                 android:textColor="@color/dialog_tonal_button_text"
                 app:backgroundTint="@color/dialog_tonal_button_bg" />
@@ -471,7 +467,7 @@
                 android:minWidth="86dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_clear_panel"
                 android:textColor="@color/dialog_tonal_button_text"
                 app:backgroundTint="@color/dialog_tonal_button_bg" />
@@ -485,7 +481,7 @@
                 android:minWidth="108dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/web_home_extension_save_preview"
                 android:textColor="@color/dialog_primary_button_text"
                 app:backgroundTint="@color/dialog_primary_button_bg" />
@@ -499,7 +495,7 @@
                 android:minWidth="92dp"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:text="@string/dialog_negative"
                 android:textColor="@color/dialog_outlined_button_text"
                 app:backgroundTint="@color/dialog_outlined_button_bg"

@@ -111,15 +111,15 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     protected boolean isIdle() {
-        return mController.getPlaybackState() == Player.STATE_IDLE;
+        return mController != null && mController.getPlaybackState() == Player.STATE_IDLE;
     }
 
     protected boolean isEnded() {
-        return mController.getPlaybackState() == Player.STATE_ENDED;
+        return mController != null && mController.getPlaybackState() == Player.STATE_ENDED;
     }
 
     protected boolean isBuffering() {
-        return mController.getPlaybackState() == Player.STATE_BUFFERING;
+        return mController != null && mController.getPlaybackState() == Player.STATE_BUFFERING;
     }
 
     protected boolean isPaused() {
@@ -154,6 +154,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     }
 
     protected void seekTo(long time) {
+        if (mController == null) return;
         mController.seekTo(player().getPosition() + time);
         mController.play();
     }
@@ -213,7 +214,11 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
             mController = mControllerFuture.get();
             getSeekView().setPlayer(mController);
             mController.addListener(this);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // Without a controller the UI would hit null on every state query; surface the
+            // failure instead of silently continuing with mController == null.
+            SpiderDebug.log("playback-flow", "controller build failed", e);
+            onError(ResUtil.getString(R.string.error_play_player));
         }
         SpiderDebug.log("playback-flow", "controller connected cost=%dms key=%s", System.currentTimeMillis() - start, getPlaybackKey());
     }

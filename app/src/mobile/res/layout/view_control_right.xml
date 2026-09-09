@@ -11,6 +11,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/desc_lock"
         android:scaleType="center"
         android:src="@drawable/ic_control_lock_off" />
 
@@ -19,6 +20,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/desc_rotate"
         android:scaleType="center"
         android:src="@drawable/ic_control_rotate" />
 

@@ -76,7 +76,7 @@
                     android:inputType="textUri"
                     android:scrollHorizontally="true"
                     android:selectAllOnFocus="false"
-                    android:singleLine="true"
+                    android:maxLines="1"
                     android:textColor="@color/black"
                     android:textColorHint="#666666" />
 
@@ -184,8 +184,7 @@
                         android:minLines="6"
                         android:scrollHorizontally="true"
                         android:selectAllOnFocus="false"
-                        android:singleLine="false"
-                        android:textColor="@color/black"
+                                android:textColor="@color/black"
                         android:textColorHint="#666666" />
 
                 </com.google.android.material.textfield.TextInputLayout>

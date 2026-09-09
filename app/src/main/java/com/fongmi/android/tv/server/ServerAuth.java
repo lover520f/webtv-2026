@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.github.catvod.utils.Prefers;
 
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 import fi.iki.elonen.NanoHTTPD;
@@ -57,7 +58,8 @@ public class ServerAuth {
 
     private static boolean isLanIp(String ip) {
         if (TextUtils.isEmpty(ip)) return false;
-        return ip.startsWith("10.") || ip.startsWith("192.168.") || ip.matches("172\\.(1[6-9]|2[0-9]|3[0-1])\\..*") || ip.startsWith("169.254.");
+        // 169.254.0.0/16 is link-local (cloud metadata on some platforms) and must not count as LAN.
+        return ip.startsWith("10.") || ip.startsWith("192.168.") || ip.matches("172\\.(1[6-9]|2[0-9]|3[0-1])\\..*");
     }
 
     public static boolean allow(NanoHTTPD.IHTTPSession session, String url) {
@@ -77,11 +79,17 @@ public class ServerAuth {
     }
 
     private static boolean hasToken(NanoHTTPD.IHTTPSession session) {
-        return TOKEN.equals(session.getParms().get("token")) || TOKEN.equals(session.getHeaders().get(HEADER)) || bearer(session);
+        return equalsToken(TOKEN, session.getParms().get("token")) || equalsToken(TOKEN, session.getHeaders().get(HEADER)) || bearer(session);
+    }
+
+    // Constant-time comparison so response timing cannot be used to recover the token byte by byte.
+    private static boolean equalsToken(String expected, String provided) {
+        if (expected == null || provided == null) return false;
+        return MessageDigest.isEqual(expected.getBytes(), provided.getBytes());
     }
 
     private static boolean protectedPath(String url) {
-        return url.startsWith("/manage/") || url.startsWith("/file") || url.startsWith("/upload") || url.startsWith("/newFolder") || url.startsWith("/delFolder") || url.startsWith("/delFile") || url.startsWith("/debug/") || url.startsWith("/cache") || url.startsWith("/action") || url.startsWith("/proxy") || url.startsWith("/webResource") || url.startsWith("/pan/check") || url.startsWith("/parse") || url.startsWith("/media") || url.startsWith("/tvbus") || url.startsWith("/device") || url.startsWith("/api/playback") || url.startsWith("/playback");
+        return url.startsWith("/manage/") || url.startsWith("/file") || url.startsWith("/upload") || url.startsWith("/newFolder") || url.startsWith("/delFolder") || url.startsWith("/delFile") || url.startsWith("/debug/") || url.startsWith("/cache") || url.startsWith("/action") || url.startsWith("/proxy") || url.startsWith("/webResource") || url.startsWith("/pan/check") || url.startsWith("/parse") || url.startsWith("/media") || url.startsWith("/tvbus") || url.startsWith("/device") || url.startsWith("/api/playback") || url.startsWith("/playback") || url.startsWith("/m3u8") || url.startsWith("/image/");
     }
 
     /**

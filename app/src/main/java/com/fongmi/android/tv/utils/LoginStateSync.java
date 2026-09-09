@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Xml;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.gitcloud.secure.GitCloudTokenStore;
+import com.fongmi.android.tv.server.ServerAuth;
 import com.fongmi.android.tv.setting.Setting;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.utils.Path;
@@ -24,12 +26,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,12 +48,19 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+
 public class LoginStateSync {
 
     public static final String PART_NAME = "loginStateFiles";
 
     private static final int BUFFER_SIZE = 128 * 1024;
     private static final long MAX_SYNC_FILE_SIZE = 4L * 1024 * 1024;
+    private static final long RESTORE_MAX_TOTAL = 32L * 1024 * 1024;
+    private static final byte[] CIPHER_MAGIC = new byte[]{'F', 'M', 'L', 'S', '1'};
     private static final long MAX_SCAN_FILE_SIZE = 512L * 1024;
     private static final int TEXT_SAMPLE_SIZE = 4 * 1024;
     private static final int TEXT_PREVIEW_SIZE = 256 * 1024;
@@ -358,12 +370,18 @@ public class LoginStateSync {
     public static int restoreArchive(File archive) throws IOException {
         if (archive == null || !archive.isFile() || archive.length() <= 0) return 0;
         int count = 0;
+        long total = 0;
         byte[] buffer = new byte[BUFFER_SIZE];
         try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(archive), BUFFER_SIZE))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String path = normalize(entry.getName());
                 if (path.isEmpty() || entry.isDirectory() || !isSafePath(path) || isIgnoredLearningPath(path)) {
+                    zis.closeEntry();
+                    continue;
+                }
+                if (entry.getSize() > MAX_SYNC_FILE_SIZE) {
+                    SpiderDebug.log("sync", "restore login state skipped entry=%s size=%d", path, entry.getSize());
                     zis.closeEntry();
                     continue;
                 }
@@ -391,7 +409,11 @@ public class LoginStateSync {
                 }
                 try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(create(out)), BUFFER_SIZE)) {
                     int read;
-                    while ((read = zis.read(buffer)) != -1) bos.write(buffer, 0, read);
+                    while ((read = zis.read(buffer)) != -1) {
+                        total += read;
+                        if (total > RESTORE_MAX_TOTAL) throw new IOException("Login state archive exceeds restore limit");
+                        bos.write(buffer, 0, read);
+                    }
                 }
                 if (entry.getTime() > 0) out.setLastModified(entry.getTime());
                 count++;
@@ -400,6 +422,116 @@ public class LoginStateSync {
         }
         SpiderDebug.log("sync", "restore login state count=%d file=%s", count, archive.getAbsolutePath());
         return count;
+    }
+
+    /**
+     * Login-state archives carry live cloud-drive cookies and repo tokens; on the wire they are
+     * encrypted with AES-GCM keyed by the receiver's server token, so only the paired device can
+     * read them even when the LAN transfer itself is plaintext. Legacy plaintext archives
+     * (missing magic) are still accepted for older peers.
+     */
+    public static Archive encrypt(Archive archive, String token) throws IOException {
+        if (archive == null || TextUtils.isEmpty(token)) return archive;
+        try {
+            byte[] iv = new byte[12];
+            new SecureRandom().nextBytes(iv);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey(token), new GCMParameterSpec(128, iv));
+            byte[] data = cipher.doFinal(readAllBytes(archive.getFile()));
+            File file = File.createTempFile("webhtv-login-state-", ".bin", Path.cache());
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                out.write(CIPHER_MAGIC);
+                out.write(iv);
+                out.write(data);
+            }
+            Path.clear(archive.getFile());
+            Archive result = new Archive(file, archive.count, archive.rawSize, file.length());
+            SpiderDebug.log("sync", "login state archive encrypted size=%d", file.length());
+            return result;
+        } catch (IOException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException("Login state encryption failed", e);
+        }
+    }
+
+    public static File decryptArchive(File file) throws IOException {
+        try {
+            byte[] all = readAllBytes(file);
+            if (!startsWith(all, CIPHER_MAGIC)) return file;
+            int offset = CIPHER_MAGIC.length;
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey(ServerAuth.tokenValue()), new GCMParameterSpec(128, Arrays.copyOfRange(all, offset, offset + 12)));
+            byte[] plain = cipher.doFinal(Arrays.copyOfRange(all, offset + 12, all.length));
+            File out = File.createTempFile("webhtv-login-state-", ".zip", Path.cache());
+            Path.write(out, plain);
+            return out;
+        } catch (IOException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException("Login state decryption failed", e);
+        }
+    }
+
+    /** Encrypts a small JSON payload (device descriptor) for the paired peer; passthrough when no token. */
+    public static String encryptText(String text, String token) throws IOException {
+        if (TextUtils.isEmpty(token) || TextUtils.isEmpty(text)) return text;
+        try {
+            byte[] iv = new byte[12];
+            new SecureRandom().nextBytes(iv);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey(token), new GCMParameterSpec(128, iv));
+            byte[] data = cipher.doFinal(text.getBytes(StandardCharsets.UTF_8));
+            byte[] out = new byte[CIPHER_MAGIC.length + iv.length + data.length];
+            System.arraycopy(CIPHER_MAGIC, 0, out, 0, CIPHER_MAGIC.length);
+            System.arraycopy(iv, 0, out, CIPHER_MAGIC.length, iv.length);
+            System.arraycopy(data, 0, out, CIPHER_MAGIC.length + iv.length, data.length);
+            return Base64.encodeToString(out, Base64.NO_WRAP);
+        } catch (IOException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException("Payload encryption failed", e);
+        }
+    }
+
+    /** Decrypts a payload produced by encryptText; non-cipher values (legacy peers) pass through. */
+    public static String decryptText(String text) throws IOException {
+        if (TextUtils.isEmpty(text)) return text;
+        try {
+            byte[] all = Base64.decode(text, Base64.NO_WRAP);
+            if (!startsWith(all, CIPHER_MAGIC)) return text;
+            int offset = CIPHER_MAGIC.length;
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey(ServerAuth.tokenValue()), new GCMParameterSpec(128, Arrays.copyOfRange(all, offset, offset + 12)));
+            return new String(cipher.doFinal(Arrays.copyOfRange(all, offset + 12, all.length)), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new IOException("Payload decryption failed", e);
+        }
+    }
+
+    private static SecretKey secretKey(String token) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        digest.update("webhtv-login-state-v1:".getBytes(StandardCharsets.UTF_8));
+        digest.update(token.getBytes(StandardCharsets.UTF_8));
+        return new SecretKeySpec(digest.digest(), "AES");
+    }
+
+    private static byte[] readAllBytes(File file) throws IOException {
+        try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+            return out.toByteArray();
+        }
+    }
+
+    private static boolean startsWith(byte[] data, byte[] prefix) {
+        if (data.length < prefix.length) return false;
+        for (int i = 0; i < prefix.length; i++) if (data[i] != prefix[i]) return false;
+        return true;
     }
 
     private static int restoreGitCloudTokens(byte[] data) throws IOException {

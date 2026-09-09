@@ -80,7 +80,7 @@ public class JGitDriveEngine implements GitDriveEngine {
             }
             String message = "upload: WebHTV files " + System.currentTimeMillis();
             ObjectId id = git.commit().setMessage(message).setAuthor("WebHTV", "webhtv@app.local").call().getId();
-            git.push().setCredentialsProvider(credentials(config)).call();
+            pushWithRebase(git, config);
             CommitResult result = new CommitResult();
             result.commitSha = id == null ? "" : id.name();
             result.pushed = true;
@@ -91,6 +91,21 @@ public class JGitDriveEngine implements GitDriveEngine {
         } catch (Throwable e) {
             throw new GitCloudException("上传失败：" + sanitize(e.getMessage()), e);
         }
+    }
+
+    /**
+     * Two devices pushing concurrently is the common case; a plain push is then rejected as
+     * non-fast-forward and the next plain pull fails on the diverged history. Rebase the local
+     * commit onto the fetched remote head first, and fail with an actionable message when the
+     * remote still cannot be reconciled.
+     */
+    private void pushWithRebase(Git git, GitDriveConfig config) throws Throwable {
+        try {
+            git.pull().setRebase(true).setCredentialsProvider(credentials(config)).call();
+        } catch (Throwable e) {
+            throw new GitCloudException("远端有新版本且自动合并失败，请先手动下拉同步：" + sanitize(e.getMessage()), e);
+        }
+        git.push().setCredentialsProvider(credentials(config)).call();
     }
 
     @Override

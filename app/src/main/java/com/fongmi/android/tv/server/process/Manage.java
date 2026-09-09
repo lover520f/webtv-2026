@@ -323,12 +323,19 @@ public class Manage implements Process {
     private String remoteToken(String target) {
         try {
             String query = URI.create(target).getRawQuery();
-            if (TextUtils.isEmpty(query)) return "";
-            for (String item : query.split("&")) {
-                int idx = item.indexOf('=');
-                if (idx > 0 && "token".equals(item.substring(0, idx))) return java.net.URLDecoder.decode(item.substring(idx + 1), StandardCharsets.UTF_8);
+            if (!TextUtils.isEmpty(query)) {
+                for (String item : query.split("&")) {
+                    int idx = item.indexOf('=');
+                    if (idx > 0 && "token".equals(item.substring(0, idx))) return java.net.URLDecoder.decode(item.substring(idx + 1), StandardCharsets.UTF_8);
+                }
             }
         } catch (Throwable ignored) {
+        }
+        // Fall back to the pairing code learned on the device list so a paired device can be
+        // synced from the manage page without re-entering its token into the URL.
+        String clean = stripQuery(target);
+        for (Device device : Device.getAll()) {
+            if (!TextUtils.isEmpty(device.getToken()) && clean.startsWith(device.getIp())) return device.getToken();
         }
         return "";
     }
@@ -608,7 +615,11 @@ public class Manage implements Process {
         LoginStateSync.Archive loginArchive = null;
         try {
             if (!pull && options.isSpider()) archive = SyncFiles.createArchive(SyncFiles.getPaths(options.getPaths()));
-            if (!pull && options.isLoginState()) loginArchive = LoginStateSync.createArchive();
+            if (!pull && options.isLoginState()) {
+                loginArchive = LoginStateSync.createArchive();
+                // Encrypt with the receiver's token so credentials never cross the LAN in the clear.
+                if (loginArchive != null) loginArchive = LoginStateSync.encrypt(loginArchive, remoteToken(device));
+            }
             RequestBody body = buildSyncBody(pull, options, archive, loginArchive);
             String remote = remoteUrl(device, "/action?do=sync&mode=" + (pull ? "2" : "1") + "&type=backup");
             SpiderDebug.log("sync", "manage start direction=%s device=%s options=%s archive=%s loginArchive=%s", pull ? "pull" : "push", device, options, archive == null ? "none" : archive.getFile().getAbsolutePath(), loginArchive == null ? "none" : loginArchive.getFile().getAbsolutePath());

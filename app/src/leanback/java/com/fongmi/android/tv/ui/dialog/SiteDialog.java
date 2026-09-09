@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
@@ -108,6 +109,8 @@ public class SiteDialog extends BaseAlertDialog implements SiteAdapter.OnClickLi
         initEvent();
         if (adapter.getItemCount() == 0) {
             directDialog = null;
+            // Opening the switcher on an empty list must say so instead of failing silently.
+            Notify.show(R.string.error_empty);
             return;
         }
         directDialog.setOnDismissListener(d -> {

@@ -32,7 +32,10 @@ public class CustomUpDownView extends MaterialTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return KeyUtil.isActionDown(event) && ((upListener != null && KeyUtil.isUpKey(event)) || (downListener != null && KeyUtil.isDownKey(event)));
+        // Consume only key repeats (held key = continuous adjustment). A short press falls
+        // through to the default focus search: previously every up/down press was swallowed,
+        // so focus could never leave this row vertically with the D-pad.
+        return event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() > 0 && ((upListener != null && KeyUtil.isUpKey(event)) || (downListener != null && KeyUtil.isDownKey(event)));
     }
 
     @Override

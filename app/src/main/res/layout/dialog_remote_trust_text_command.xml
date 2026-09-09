@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
-        android:singleLine="true"
+        android:maxLines="1"
         android:textColor="#202124"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -39,7 +39,7 @@
             android:imeOptions="actionDone"
             android:importantForAutofill="no"
             android:inputType="textUri"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textColor="#202124"
             android:textColorHint="#8A8F98" />
 

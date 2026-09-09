@@ -58,7 +58,7 @@
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:ellipsize="middle"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textColor="#202124"
             android:textSize="14sp"
             tools:text="/TV" />

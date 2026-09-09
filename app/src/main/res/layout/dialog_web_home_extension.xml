@@ -173,7 +173,6 @@
             android:scrollHorizontally="true"
             android:scrollbars="none"
             android:selectAllOnFocus="false"
-            android:singleLine="false"
             android:textColor="@color/black"
             android:textColorHint="#666666" />
 

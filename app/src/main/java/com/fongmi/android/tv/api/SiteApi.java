@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -220,19 +222,21 @@ public class SiteApi {
         String target = normalizeSearchText(keyword);
         if (target.isEmpty()) return result;
         int threshold = getSearchRelevanceThreshold();
-        List<Vod> items = new ArrayList<>();
+        Map<Vod, Integer> ranks = new LinkedHashMap<>();
         for (Vod vod : result.getList()) {
             vod.setSite(site);
-            if (searchRank(vod, target) < threshold) items.add(vod);
+            int rank = searchRank(vod, target);
+            if (rank < threshold) ranks.put(vod, rank);
         }
-        items.sort((a, b) -> Integer.compare(searchRank(a, target), searchRank(b, target)));
-        result.setList(items);
+        result.setList(ranks.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).collect(Collectors.toList()));
         return result;
     }
 
     private static int getSearchRelevanceThreshold() {
         int value = com.github.catvod.utils.Prefers.getInt("search_relevance_threshold", 5);
-        return value < 1 || value > 6 ? 5 : value;
+        // 1 = strictest (exact title match); 6 = filtering off (ranks top out at 5).
+        if (value < 1) return 1;
+        return Math.min(value, 6);
     }
 
     private static int searchRank(@NonNull Vod vod, @NonNull String target) {

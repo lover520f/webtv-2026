@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
-                android:singleLine="true"
+                android:maxLines="1"
                 android:textColor="@color/sync_device_text"
                 android:textSize="14sp"
                 tools:text="spUtils.xml" />
@@ -99,7 +99,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="1dp"
             android:ellipsize="middle"
-            android:singleLine="true"
+            android:maxLines="1"
             android:textColor="@color/sync_device_subtext"
             android:textSize="12sp"
             tools:text="shared_prefs/spUtils.xml · 4 KB" />

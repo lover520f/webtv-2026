@@ -1186,12 +1186,20 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
 
     private void onNext(boolean notify) {
         Episode item = mEpisodeAdapter.getNext();
+        if (item == null) {
+            if (notify) Notify.show(R.string.error_play_next);
+            return;
+        }
         if (!item.isSelected()) onItemClick(item);
         else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_prev : R.string.error_play_next);
     }
 
     private void onPrev(boolean notify) {
         Episode item = mEpisodeAdapter.getPrev();
+        if (item == null) {
+            if (notify) Notify.show(R.string.error_play_prev);
+            return;
+        }
         if (!item.isSelected()) onItemClick(item);
         else if (notify) Notify.show(mHistory.isRevPlay() ? R.string.error_play_next : R.string.error_play_prev);
     }

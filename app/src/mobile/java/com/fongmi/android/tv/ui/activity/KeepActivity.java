@@ -83,12 +83,19 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     private void loadConfig(Config config, Keep item) {
         VodConfig.load(config, new Callback() {
             @Override
+            public void start() {
+                Notify.progress(getActivity());
+            }
+
+            @Override
             public void success() {
+                Notify.dismiss();
                 VideoActivity.start(getActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
             }
 
             @Override
             public void error(String msg) {
+                Notify.dismiss();
                 Notify.show(msg);
             }
         });

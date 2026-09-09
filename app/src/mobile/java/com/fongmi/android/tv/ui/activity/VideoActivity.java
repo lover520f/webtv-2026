@@ -1011,6 +1011,10 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private void checkNext(boolean notify) {
         setR1Callback();
         Episode item = mEpisodeAdapter.getNext();
+        if (item == null) {
+            if (notify) Notify.show(R.string.error_play_next);
+            return;
+        }
         if (!item.isSelected()) onItemClick(item);
         else if (notify) Notify.show(R.string.error_play_next);
     }
@@ -1018,6 +1022,10 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private void checkPrev() {
         setR1Callback();
         Episode item = mEpisodeAdapter.getPrev();
+        if (item == null) {
+            Notify.show(R.string.error_play_prev);
+            return;
+        }
         if (!item.isSelected()) onItemClick(item);
         else Notify.show(R.string.error_play_prev);
     }
@@ -1961,13 +1969,13 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     @Override
     public void onFlingUp() {
-        if (mEpisodeAdapter.getItemCount() == 1) onRefresh();
+        if (mEpisodeAdapter.getItemCount() <= 1) onRefresh();
         else checkNext();
     }
 
     @Override
     public void onFlingDown() {
-        if (mEpisodeAdapter.getItemCount() == 1) onRefresh();
+        if (mEpisodeAdapter.getItemCount() <= 1) onRefresh();
         else checkPrev();
     }
 

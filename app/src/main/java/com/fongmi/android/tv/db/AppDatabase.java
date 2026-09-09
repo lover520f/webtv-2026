@@ -42,7 +42,7 @@ import java.util.List;
 @Database(entities = {Keep.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class, EpgReminderRecord.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 37;
+    public static final int VERSION = 38;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
 
@@ -52,6 +52,10 @@ public abstract class AppDatabase extends RoomDatabase {
         if (instance == null) {
             try {
                 instance = create(App.get());
+                // Room opens the database lazily on first DAO access; force the open here so a
+                // missing or failed migration is caught by this catch (preserve + rebuild) instead
+                // of crashing later in unrelated code paths on first DAO touch.
+                instance.getOpenHelper().getWritableDatabase().close();
             } catch (Throwable e) {
                 preserveFailedDatabase(App.get(), e);
                 App.get().deleteDatabase(NAME);
@@ -104,14 +108,22 @@ public abstract class AppDatabase extends RoomDatabase {
     public static void restore(File file, com.fongmi.android.tv.impl.Callback callback) {
         Task.execute(() -> {
             File restore = Path.cache("restore");
-            FileUtil.gzipDecompress(file, restore);
-            Backup backup = Backup.objectFrom(Path.read(restore));
-            if (backup.getConfig().isEmpty()) {
-                App.post(callback::error);
-            } else {
-                backup.restore();
+            try {
+                FileUtil.gzipDecompress(file, restore);
+                Backup backup = Backup.objectFrom(Path.read(restore));
+                if (backup.getConfig().isEmpty()) {
+                    App.post(callback::error);
+                } else {
+                    backup.restore();
+                    Path.clear(restore);
+                    App.post(callback::success);
+                }
+            } catch (Throwable e) {
+                // A truncated or non-gzip file must surface as callback.error, not kill the
+                // process from inside the executor thread.
+                SpiderDebug.log("db-restore", e);
                 Path.clear(restore);
-                App.post(callback::success);
+                App.post(callback::error);
             }
         });
     }
@@ -134,6 +146,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(Migrations.MIGRATION_34_35)
                 .addMigrations(Migrations.MIGRATION_35_36)
                 .addMigrations(Migrations.MIGRATION_36_37)
+                .addMigrations(Migrations.MIGRATION_37_38)
                 .setQueryExecutor(Task.executor())
                 .setTransactionExecutor(Task.largeExecutor())
                 .allowMainThreadQueries().build();

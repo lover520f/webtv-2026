@@ -266,7 +266,7 @@ public class Action implements Process {
             String mode = Objects.requireNonNullElse(params.get("mode"), "0");
             boolean success = true;
             if (params.get("device") != null && (mode.equals("0") || mode.equals("2"))) {
-                Device device = Device.objectFrom(params.get("device"));
+                Device device = Device.objectFrom(LoginStateSync.decryptText(params.get("device")));
                 if ("history".equals(type)) success = sendHistory(device, params);
                 else if ("keep".equals(type)) success = sendKeep(device);
                 else if ("backup".equals(type)) success = sendBackup(device, params);
@@ -289,7 +289,9 @@ public class Action implements Process {
 
     private boolean post(Device device, String type, RequestBody body) {
         try {
-            try (okhttp3.Response response = OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC_TRANSFER), device.getIp().concat("/action?do=sync&mode=0&type=" + type), body).execute()) {
+            String url = device.getIp().concat("/action?do=sync&mode=0&type=" + type);
+            if (!TextUtils.isEmpty(device.getToken())) url = url + "&token=" + device.getToken();
+            try (okhttp3.Response response = OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC_TRANSFER), url, body).execute()) {
                 if (response.isSuccessful()) return true;
                 throw new IllegalStateException(response.message());
             }
@@ -364,6 +366,9 @@ public class Action implements Process {
     private void syncBackup(Map<String, String> params, Map<String, String> files, boolean force) {
         Backup backup = Backup.objectFrom(params.get("backup"));
         SyncOptions options = SyncOptions.objectFrom(params.get("options"));
+        // A broken/null backup JSON parses into an empty Backup; restoring it with force=true
+        // would wipe every local site/live/config row. Fail the sync instead.
+        if (options.isConfig() && backup.getConfig().isEmpty()) throw new IllegalStateException("Backup missing interface config data");
         if (options.isSpider() && files.containsKey(SyncFiles.PART_NAME)) {
             File archive = new File(files.get(SyncFiles.PART_NAME));
             try {
@@ -377,7 +382,12 @@ public class Action implements Process {
         if (options.isLoginState() && files.containsKey(LoginStateSync.PART_NAME)) {
             File archive = new File(files.get(LoginStateSync.PART_NAME));
             try {
-                LoginStateSync.restoreArchive(archive);
+                File decrypted = LoginStateSync.decryptArchive(archive);
+                try {
+                    LoginStateSync.restoreArchive(decrypted);
+                } finally {
+                    if (!decrypted.equals(archive)) Path.clear(decrypted);
+                }
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             } finally {

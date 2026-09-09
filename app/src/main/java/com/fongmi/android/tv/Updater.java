@@ -217,7 +217,8 @@ public class Updater implements UpdateListener, UpdateTransfer.Callback {
 
     @Override
     public void onCancel(View view) {
-        Setting.putUpdate(false);
+        // Canceling the prompt or the download must not silently disable the auto-update check:
+        // putUpdate(false) here used to turn it off permanently with no way back from the UI.
         if (downloading) {
             canceled = true;
             downloading = false;

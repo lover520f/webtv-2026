@@ -164,7 +164,7 @@ class IjkSimplePlayer extends SimpleBasePlayer implements IMediaPlayer.Listener 
     protected ListenableFuture<?> handleSetMediaItems(List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
         mediaItem = mediaItems.isEmpty() ? null : mediaItems.get(0);
         setPendingSeek(mediaItem != null && startPositionMs > 0 ? startPositionMs : C.TIME_UNSET);
-        playbackState = mediaItem == null ? Player.STATE_IDLE : Player.STATE_IDLE;
+        playbackState = Player.STATE_IDLE;
         loading = false;
         currentTracks = Tracks.EMPTY;
         playerError = null;

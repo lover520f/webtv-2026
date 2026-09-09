@@ -87,12 +87,21 @@ public class Backup {
     }
 
     public void restore() {
-        AppDatabase.get().clearAllTables();
-        AppDatabase.get().getSiteDao().insertOrUpdate(getSite());
-        AppDatabase.get().getLiveDao().insertOrUpdate(getLive());
-        AppDatabase.get().getKeepDao().insertOrUpdate(getKeep());
-        AppDatabase.get().getConfigDao().insertOrUpdate(getConfig());
-        AppDatabase.get().getHistoryDao().insertOrUpdate(getHistory());
+        AppDatabase db = AppDatabase.get();
+        // Room forbids clearAllTables() inside a transaction, so the tables are emptied by hand:
+        // an aborted restore (process death, insert failure) must not leave a half-cleared database.
+        db.runInTransaction(() -> {
+            db.getSiteDao().delete();
+            db.getLiveDao().delete();
+            db.getKeepDao().deleteAll();
+            db.getConfigDao().delete();
+            db.getHistoryDao().delete();
+            db.getSiteDao().insertOrUpdate(getSite());
+            db.getLiveDao().insertOrUpdate(getLive());
+            db.getKeepDao().insertOrUpdate(getKeep());
+            db.getConfigDao().insertOrUpdate(getConfig());
+            db.getHistoryDao().insertOrUpdate(getHistory());
+        });
         for (Map.Entry<String, ?> entry : withoutDeprecated(getPrefers()).entrySet()) Prefers.put(entry.getKey(), entry.getValue());
         Prefers.remove("playback_webhook_privacy_accepted");
         Setting.applyLanguage();
@@ -130,27 +139,7 @@ public class Backup {
     }
 
     public void restore(SyncOptions options, boolean force) {
-        Map<Integer, Integer> cids = new HashMap<>();
-        if (options.isConfig()) {
-            if (force) {
-                AppDatabase.get().getSiteDao().delete();
-                AppDatabase.get().getLiveDao().delete();
-                AppDatabase.get().getConfigDao().delete();
-            }
-            AppDatabase.get().getSiteDao().insertOrUpdate(getSite());
-            AppDatabase.get().getLiveDao().insertOrUpdate(getLive());
-            cids.putAll(restoreConfig());
-        }
-        if (options.isKeep()) {
-            if (force) AppDatabase.get().getKeepDao().deleteAll();
-            for (Keep item : getKeep()) if (cids.containsKey(item.getCid())) item.setCid(cids.get(item.getCid()));
-            AppDatabase.get().getKeepDao().insertOrUpdate(getKeep());
-        }
-        if (options.isHistory()) {
-            if (force) AppDatabase.get().getHistoryDao().delete();
-            for (History item : getHistory()) if (cids.containsKey(item.getCid())) item.setCid(cids.get(item.getCid()));
-            AppDatabase.get().getHistoryDao().insertOrUpdate(getHistory());
-        }
+        Map<Integer, Integer> cids = restoreDb(options, force);
         for (Map.Entry<String, ?> entry : filter(getPrefers(), options).entrySet()) Prefers.put(entry.getKey(), entry.getValue());
         Prefers.remove("playback_webhook_privacy_accepted");
         if (options.isSettings()) {
@@ -162,6 +151,38 @@ public class Backup {
         if (options.isKeep()) RefreshEvent.keep();
         if (options.isHistory()) RefreshEvent.history();
         RefreshEvent.home();
+    }
+
+    /**
+     * All database mutations of a sync restore run in one transaction: a failure mid-way must
+     * roll back together instead of leaving sites restored while keep/history were deleted.
+     */
+    private Map<Integer, Integer> restoreDb(SyncOptions options, boolean force) {
+        AppDatabase db = AppDatabase.get();
+        Map<Integer, Integer> cids = new HashMap<>();
+        db.runInTransaction(() -> {
+            if (options.isConfig()) {
+                if (force) {
+                    db.getSiteDao().delete();
+                    db.getLiveDao().delete();
+                    db.getConfigDao().delete();
+                }
+                db.getSiteDao().insertOrUpdate(getSite());
+                db.getLiveDao().insertOrUpdate(getLive());
+                cids.putAll(restoreConfig());
+            }
+            if (options.isKeep()) {
+                if (force) db.getKeepDao().deleteAll();
+                for (Keep item : getKeep()) if (cids.containsKey(item.getCid())) item.setCid(cids.get(item.getCid()));
+                db.getKeepDao().insertOrUpdate(getKeep());
+            }
+            if (options.isHistory()) {
+                if (force) db.getHistoryDao().delete();
+                for (History item : getHistory()) if (cids.containsKey(item.getCid())) item.setCid(cids.get(item.getCid()));
+                db.getHistoryDao().insertOrUpdate(getHistory());
+            }
+        });
+        return cids;
     }
 
     private void reloadConfig() {

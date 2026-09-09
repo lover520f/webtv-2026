@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,7 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.SyncOptions;
 import com.fongmi.android.tv.databinding.DialogOneKeySyncBinding;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.server.ServerAuth;
 import com.fongmi.android.tv.setting.Setting;
 import com.fongmi.android.tv.ui.adapter.SyncDeviceAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -34,6 +36,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScanTask;
 import com.fongmi.android.tv.utils.SyncFiles;
 import com.fongmi.android.tv.utils.Task;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -119,6 +122,7 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         binding.modeButton.setOnClickListener(v -> toggleMode());
         binding.refresh.setOnClickListener(v -> refresh());
         binding.changeDevice.setOnClickListener(v -> changeDevice());
+        binding.localToken.setOnClickListener(v -> Util.copy(ServerAuth.tokenValue()));
         binding.selectAll.setOnClickListener(v -> toggleSelection());
         binding.spider.setOnCheckedChangeListener((buttonView, isChecked) -> updateSyncPathsVisible());
         binding.syncPaths.setOnClickListener(v -> SyncPathDialog.show(this, this::updateSyncPathSummary));
@@ -141,6 +145,7 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         selected = null;
         binding.options.setVisibility(View.GONE);
         binding.actionBar.setVisibility(View.GONE);
+        binding.pairingBar.setVisibility(View.GONE);
         adapter.clear(() -> {
             scan();
         });
@@ -151,6 +156,7 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         selected = null;
         binding.options.setVisibility(View.GONE);
         binding.actionBar.setVisibility(View.GONE);
+        binding.pairingBar.setVisibility(View.GONE);
         focusFirstOnNextDevice = true;
         updateVisible();
         focusFirstDevice();
@@ -249,6 +255,9 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         Setting.putSyncDevice(device == null ? "" : device.getUuid());
         binding.options.setVisibility(View.VISIBLE);
         binding.actionBar.setVisibility(View.VISIBLE);
+        binding.pairingBar.setVisibility(View.VISIBLE);
+        binding.localToken.setText(ServerAuth.tokenValue());
+        binding.remoteToken.setText(device == null ? "" : device.getToken());
         updateDevice(binding.remoteName, binding.remoteHost, binding.remoteIcon, device);
         updateSyncPathSummary();
         updateSyncPathsVisible();
@@ -353,7 +362,9 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         }
         SyncOptions options = options();
         String mode = toRemote ? "1" : "2";
-        String url = String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=backup", selected.getIp(), mode);
+        String token = resolvePairingToken(selected);
+        if (TextUtils.isEmpty(token)) return;
+        String url = String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=backup&token=%s", selected.getIp(), mode, token);
         binding.start.setEnabled(false);
         setSyncing(true);
         updateProgress(0, toRemote ? R.string.sync_prepare_files : R.string.sync_wait_remote);
@@ -363,7 +374,8 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
             try {
                 SyncFiles.Archive archive = toRemote && options.isSpider() ? SyncFiles.createArchive(SyncFiles.getPaths(Setting.getSyncPaths()), () -> syncing, this::onPrepareProgress) : null;
                 LoginStateSync.Archive loginArchive = toRemote && options.isLoginState() ? LoginStateSync.createArchive() : null;
-                RequestBody body = buildBody(options, archive, loginArchive);
+                if (loginArchive != null) loginArchive = LoginStateSync.encrypt(loginArchive, token);
+                RequestBody body = buildBody(options, archive, loginArchive, token);
                 if (!syncing) {
                     if (archive != null) archive.delete();
                     if (loginArchive != null) loginArchive.delete();
@@ -381,13 +393,36 @@ public class OneKeySyncDialog extends BaseBottomSheetDialog implements SyncDevic
         });
     }
 
-    private RequestBody buildBody(SyncOptions options, SyncFiles.Archive archive, LoginStateSync.Archive loginArchive) {
+    /**
+     * /action is a sensitive path that always requires the receiver's token, so each device keeps
+     * the pairing code learned once from the peer. The code is shown in the peer's sync dialog.
+     */
+    private String resolvePairingToken(Device device) {
+        if (!TextUtils.isEmpty(device.getToken())) return device.getToken();
+        String input = binding.remoteToken.getText() == null ? "" : binding.remoteToken.getText().toString().trim();
+        if (TextUtils.isEmpty(input)) {
+            Notify.show(R.string.sync_pairing_missing);
+            binding.remoteToken.requestFocus();
+            return "";
+        }
+        device.setToken(input);
+        device.save();
+        return input;
+    }
+
+    private RequestBody buildBody(SyncOptions options, SyncFiles.Archive archive, LoginStateSync.Archive loginArchive, String token) throws IOException {
         if (archive == null && loginArchive == null) {
             FormBody.Builder body = new FormBody.Builder();
             body.add("options", options.toString());
             body.add("force", "false");
             if (toRemote) body.add("backup", Backup.create(options).toString());
-            else body.add("device", Device.get().toString());
+            else {
+                // The peer needs our token to push the result back over its reverse sync request;
+                // encrypt the descriptor with the peer token so it never crosses the LAN in the clear.
+                Device self = Device.get();
+                self.setToken(ServerAuth.tokenValue());
+                body.add("device", LoginStateSync.encryptText(self.toString(), token));
+            }
             return body.build();
         }
         App.post(() -> updatePrepare(archive, loginArchive));

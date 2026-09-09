@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class HomeWebController {
 
@@ -74,6 +75,7 @@ public class HomeWebController {
     private boolean sdkReady;
     private boolean paused;
     private volatile boolean trusted;
+    private volatile String bridgeToken = "";
 
     public HomeWebController(Activity activity, WebView webView, Listener listener) {
         this(activity, webView, listener, false);
@@ -124,6 +126,7 @@ public class HomeWebController {
         this.site = site;
         this.homePage = url;
         this.rawAdapter = WebHomeRawAdapter.create(url, site.getHeader());
+        this.bridgeToken = newBridgeToken();
         prepareExtensions(site);
         registerDocumentStartScripts();
         if (reload) {
@@ -204,6 +207,23 @@ public class HomeWebController {
 
     public String getTrustedOrigin() {
         return trustedOrigin;
+    }
+
+    /**
+     * Per-load secret handed to the main frame only. addJavascriptInterface exposes the bridge to
+     * every frame, so bridge calls that read sensitive data must present this token; a cross-origin
+     * iframe cannot read the parent's window and therefore cannot present it.
+     */
+    public String getBridgeToken() {
+        return bridgeToken;
+    }
+
+    private static String newBridgeToken() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private String bridgeTokenScript() {
+        return "(function(){try{window.__fmBridgeToken='" + bridgeToken + "';}catch(e){}})();";
     }
 
     private void refreshTrust() {
@@ -420,6 +440,9 @@ public class HomeWebController {
                 super.onPageFinished(view, url);
                 SpiderDebug.log("webhome-webview", "page finished url=%s title=%s", url, view.getTitle());
                 refreshTrust();
+                // Re-arm the bridge token on whatever document is current so trusted navigations
+                // (including SPA route changes and re-registrations) keep main-frame access.
+                if (trusted && !TextUtils.isEmpty(bridgeToken)) view.evaluateJavascript(bridgeTokenScript(), null);
                 // A pre-load layout-change injection may have locked the viewport key while
                 // the page was still empty; force a fresh injection now that the page is ready.
                 lastViewportKey = null;
@@ -535,11 +558,13 @@ public class HomeWebController {
 
     private String documentStartScript() {
         if (site == null) return "";
-        StringBuilder script = new StringBuilder();
+        StringBuilder script = new StringBuilder(bridgeTokenScript());
+        boolean hasStartExtension = false;
         for (WebHomeExtension extension : WebHomeExtensionRegistry.get().get(site.getKey())) {
             if (!WebHomeExtension.RUN_AT_START.equals(extension.getRunAt())) continue;
-            if (script.length() == 0) script.append(getSdk());
+            if (!hasStartExtension) script.append('\n').append(getSdk());
             script.append('\n').append(extension.script(site.getKey()));
+            hasStartExtension = true;
         }
         return script.toString();
     }
@@ -646,9 +671,11 @@ public class HomeWebController {
                   let seq=0;
                   function invoke(method,payload){
                     return new Promise((resolve,reject)=>{
-                      const id='fm_'+Date.now()+'_'+(++seq);
+                      const id='fm_'+Date.now()+'_'+(++seq)+'_'+Math.floor(Math.random()*4294967296).toString(36);
                       callbacks[id]={resolve,reject};
-                      fongmiBridge.invoke(id,method,JSON.stringify(payload||{}));
+                      const data=Object.assign({},payload||{});
+                      if(window.__fmBridgeToken)data.__tk=window.__fmBridgeToken;
+                      fongmiBridge.invoke(id,method,JSON.stringify(data));
                     });
                   }
                   function hydrate(data){
@@ -683,7 +710,11 @@ public class HomeWebController {
                   };
                   const net={
                     request:(url,options)=>invoke('net.request',Object.assign({},options||{},{url})),
-                    resourceUrl:(url,options)=>fongmiBridge.resourceUrl(url,JSON.stringify(options||{}))
+                    resourceUrl:(url,options)=>{
+                      const opts=Object.assign({},options||{});
+                      if(window.__fmBridgeToken)opts.__tk=window.__fmBridgeToken;
+                      return fongmiBridge.resourceUrl(url,JSON.stringify(opts));
+                    }
                   };
                   const cache={
                     get:(key,rule)=>invoke('cache.get',{key,rule}),

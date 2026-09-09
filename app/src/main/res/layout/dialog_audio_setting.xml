@@ -26,7 +26,10 @@
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/enable"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@drawable/selector_dialog_switch"
+            android:focusable="true"
+            android:padding="6dp" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 

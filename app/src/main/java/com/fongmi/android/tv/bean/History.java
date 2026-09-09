@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.room.Entity;
 import androidx.room.Index;
-import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
@@ -28,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-@Entity(indices = {
+@Entity(primaryKeys = {"cid", "key"}, indices = {
     @Index(value = {"cid", "createTime"}),
     @Index(value = {"cid", "vodName"}),
     @Index(value = {"createTime"})
@@ -36,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 public class History implements Diffable<History> {
 
     @NonNull
-    @PrimaryKey
     @SerializedName("key")
     private String key;
     @SerializedName("vodPic")
@@ -181,11 +179,17 @@ public class History implements Diffable<History> {
     public static void sync(List<History> targets) {
         targets.forEach(target -> {
             List<History> items = findByName(target.getVodName());
-            if (items.isEmpty()) target.cid(VodConfig.getCid()).save();
-            else {
-                long latestTime = items.stream().mapToLong(History::getCreateTime).max().orElse(0L);
-                if (target.getCreateTime() > latestTime) target.cid(VodConfig.getCid()).merge(items, true).save();
+            if (items.isEmpty()) {
+                target.cid(VodConfig.getCid()).save();
+                return;
             }
+            long latestTime = items.stream().mapToLong(History::getCreateTime).max().orElse(0L);
+            History latest = items.stream().filter(item -> item.getCreateTime() == latestTime).findFirst().orElse(null);
+            // Clock skew between devices must not drop newer playback progress: prefer the newer
+            // record, and on an exact timestamp tie keep whichever advanced further.
+            boolean newer = target.getCreateTime() > latestTime
+                    || (latest != null && target.getCreateTime() == latestTime && target.getPosition() > latest.getPosition());
+            if (newer) target.cid(VodConfig.getCid()).merge(items, true).save();
         });
     }
 
@@ -369,6 +373,9 @@ public class History implements Diffable<History> {
         if (getOpening() > 0) item.setOpening(getOpening());
         if (getEnding() > 0) item.setEnding(getEnding());
         if (getSpeed() != 1) item.setSpeed(getSpeed());
+        // The merged-away row is the only holder of playback progress in some sync races;
+        // keep it when the surviving record has none of its own.
+        if (getPosition() > 0 && getPosition() != C.TIME_UNSET && (item.getPosition() <= 0 || item.getPosition() == C.TIME_UNSET)) item.setPosition(getPosition());
         return this;
     }
 
@@ -410,7 +417,9 @@ public class History implements Diffable<History> {
     }
 
     public History delete() {
-        AppDatabase.get().getHistoryDao().delete(VodConfig.getCid(), getKey());
+        // Rows are per-config (composite cid+key primary key); delete by the row's own cid so a
+        // record belonging to another configuration is never removed by accident.
+        AppDatabase.get().getHistoryDao().delete(getCid(), getKey());
         AppDatabase.get().getTrackDao().delete(getKey());
         PlaybackProgressWriter.notifyDeleted(this);
         return this;

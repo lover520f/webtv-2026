@@ -64,4 +64,21 @@ public class Migrations {
             database.execSQL("CREATE TABLE IF NOT EXISTS EpgReminderRecord (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `channelName` TEXT, `programTitle` TEXT, `programStart` TEXT, `triggerAtMillis` INTEGER NOT NULL)");
         }
     };
+
+    public static final Migration MIGRATION_37_38 = new Migration(37, 38) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Device ADD COLUMN token TEXT DEFAULT NULL");
+            // History rows become per-configuration (composite cid+key primary key): sharing one
+            // row across configurations silently overwrote progress when the same site appeared
+            // in more than one config.
+            database.execSQL("CREATE TABLE History_New (`key` TEXT NOT NULL, `vodPic` TEXT, `vodName` TEXT, `vodFlag` TEXT, `vodRemarks` TEXT, `episodeUrl` TEXT, `revSort` INTEGER NOT NULL, `revPlay` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, `opening` INTEGER NOT NULL, `ending` INTEGER NOT NULL, `position` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `speed` REAL NOT NULL, `scale` INTEGER NOT NULL, `cid` INTEGER NOT NULL, PRIMARY KEY(`cid`, `key`))");
+            database.execSQL("INSERT INTO History_New (`key`, `vodPic`, `vodName`, `vodFlag`, `vodRemarks`, `episodeUrl`, `revSort`, `revPlay`, `createTime`, `opening`, `ending`, `position`, `duration`, `speed`, `scale`, `cid`) SELECT `key`, `vodPic`, `vodName`, `vodFlag`, `vodRemarks`, `episodeUrl`, `revSort`, `revPlay`, `createTime`, `opening`, `ending`, `position`, `duration`, `speed`, `scale`, `cid` FROM History");
+            database.execSQL("DROP TABLE History");
+            database.execSQL("ALTER TABLE History_New RENAME TO History");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_History_cid_createTime` ON `History` (`cid`, `createTime`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_History_cid_vodName` ON `History` (`cid`, `vodName`)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS `index_History_createTime` ON `History` (`createTime`)");
+        }
+    };
 }

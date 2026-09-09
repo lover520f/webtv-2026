@@ -480,6 +480,10 @@ WebHomeTV 是播放器壳子，不内置内容源，请使用合法配置。</st
     <string name="sync_upload_progress">%1$d%% · %2$s / %3$s · %4$s/s · %5$d 个文件</string>
     <string name="sync_canceled">同步已取消</string>
     <string name="sync_select_device_first">请先选择设备</string>
+    <string name="sync_pairing_code">配对码</string>
+    <string name="sync_pairing_hint">对端配对码（见对端设备同步弹窗）</string>
+    <string name="sync_pairing_missing">请先输入对端配对码（在对端设备打开同步弹窗可见）</string>
+    <string name="sync_pairing_copied">配对码已复制</string>
     <string name="sync_failed_with_reason">同步失败：%1$s</string>
     <string name="sync_receive_success">已接收同步数据</string>
 
@@ -541,6 +545,20 @@ WebHomeTV 是播放器壳子，不内置内容源，请使用合法配置。</st
     <string name="error_play_parse">播放地址解析失败</string>
     <string name="error_play_drm">此设备不支持所需的 DRM scheme</string>
     <string name="error_play_url">播放地址加载失败</string>
+    <string name="error_play_player">播放器初始化失败，请重试</string>
+    <string name="desc_back">返回</string>
+    <string name="desc_cast">投播到电视</string>
+    <string name="desc_info">详情</string>
+    <string name="desc_keep">收藏</string>
+    <string name="desc_setting">设置</string>
+    <string name="desc_prev">上一集</string>
+    <string name="desc_play">播放或暂停</string>
+    <string name="desc_next">下一集</string>
+    <string name="desc_danmaku">弹幕</string>
+    <string name="desc_fullscreen">全屏</string>
+    <string name="desc_lock">锁定屏幕</string>
+    <string name="desc_rotate">旋转</string>
+    <string name="desc_voice">语音搜索</string>
     <string name="live_load_failed">直播源加载失败</string>
     <string name="error_play_flag">暂无线路数据</string>
     <string name="error_play_timeout">连接超时</string>
@@ -1284,6 +1302,45 @@ WebHomeTV 是播放器壳子，不内置内容源，请使用合法配置。</st
         <item>轻松</item>
         <item>标准</item>
         <item>严格</item>
+    </string-array>
+
+    <string name="video_setting">画质调节</string>
+    <string name="video_effect_reset">重置</string>
+    <string name="video_effect_brightness">亮度</string>
+    <string name="video_effect_contrast">对比度</string>
+    <string name="video_effect_gamma">伽马</string>
+    <string name="video_effect_hue">色调</string>
+    <string name="video_effect_saturation">饱和度</string>
+    <string name="video_effect_temperature">色温</string>
+    <string name="video_effect_sharpness">锐度</string>
+    <string name="video_effect_shadow">阴影</string>
+    <string name="error_video_effect_unsupported">当前播放内核不支持画质调节</string>
+    <string name="update_github">GitHub</string>
+    <string name="update_cnb">CNB（国内快）</string>
+    <string name="update_downloading">正在下载更新…</string>
+    <string name="update_failed">检查更新失败</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_manual_title">下载更新</string>
+    <string name="update_manual_msg">复制以下链接到浏览器打开即可下载</string>
+    <string-array name="audio_preset_names">
+        <item>关闭</item>
+        <item>自然</item>
+        <item>人声</item>
+        <item>影院</item>
+        <item>低音</item>
+        <item>高音</item>
+        <item>流行</item>
+        <item>摇滚</item>
+        <item>舞曲</item>
+        <item>电子</item>
+        <item>嘻哈</item>
+        <item>爵士</item>
+        <item>古典</item>
+        <item>自定义</item>
+    </string-array>
+    <string-array name="select_render">
+        <item>Surface</item>
+        <item>Texture</item>
     </string-array>
 
 </resources>

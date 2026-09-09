@@ -149,7 +149,7 @@
                         android:inputType="textNoSuggestions"
                         android:scrollHorizontally="true"
                         android:selectAllOnFocus="false"
-                        android:singleLine="true"
+                        android:maxLines="1"
                         android:textColor="@color/black"
                         android:textColorHint="#666666" />
 
@@ -174,7 +174,7 @@
                         android:inputType="textUri"
                         android:scrollHorizontally="true"
                         android:selectAllOnFocus="false"
-                        android:singleLine="true"
+                        android:maxLines="1"
                         android:textColor="@color/black"
                         android:textColorHint="#666666" />
 
@@ -199,7 +199,7 @@
                         android:inputType="textPassword|textNoSuggestions"
                         android:scrollHorizontally="true"
                         android:selectAllOnFocus="false"
-                        android:singleLine="true"
+                        android:maxLines="1"
                         android:textColor="@color/black"
                         android:textColorHint="#666666" />
 
@@ -243,7 +243,7 @@
                             android:inputType="textNoSuggestions"
                             android:scrollHorizontally="true"
                             android:selectAllOnFocus="false"
-                            android:singleLine="true"
+                            android:maxLines="1"
                             android:textColor="@color/black"
                             android:textColorHint="#666666" />
 
@@ -273,7 +273,7 @@
                                 android:importantForAutofill="no"
                                 android:inputType="number"
                                 android:selectAllOnFocus="true"
-                                android:singleLine="true"
+                                android:maxLines="1"
                                 android:textColor="@color/black"
                                 android:textColorHint="#666666" />
 
@@ -298,7 +298,7 @@
                                 android:importantForAutofill="no"
                                 android:inputType="number"
                                 android:selectAllOnFocus="true"
-                                android:singleLine="true"
+                                android:maxLines="1"
                                 android:textColor="@color/black"
                                 android:textColorHint="#666666" />
 

@@ -217,11 +217,17 @@ public class LiveConfig extends BaseConfig {
     }
 
     public void applyKeepsToGroups(List<Group> items) {
+        if (items.isEmpty()) return;
         Set<String> key = Keep.getLive().stream().map(Keep::getKey).collect(Collectors.toSet());
-        items.stream().filter(group -> !group.isKeep())
+        // Collect before adding: adding into items.get(0) while its channels are still being
+        // streamed raises ConcurrentModificationException on sources without a keep group.
+        List<Channel> keeps = items.stream().filter(group -> !group.isKeep())
                 .flatMap(group -> group.getChannel().stream())
                 .filter(channel -> key.contains(channel.getName()))
-                .forEach(channel -> items.get(0).add(channel));
+                .collect(Collectors.toList());
+        Group keepGroup = items.get(0);
+        if (!keepGroup.isKeep()) return;
+        keeps.forEach(keepGroup::add);
     }
 
     public int[] findKeepPosition(List<Group> items) {
